@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SuperPlump — Wireframe toàn bộ màn hình V1</title>
+<style>
+:root{--ink:#26202C;--mut:#6B6472;--acc:#7A3B84;--blk:#ECE8EF;--ln:#DAD4DE;--bd:#CCC5D2;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;}
+body{background:#F4F2F5;color:var(--ink);padding:20px 12px 60px;}
+header.top{max-width:1100px;margin:0 auto 8px;}
+header.top h1{font-size:22px;font-weight:800;}
+header.top p{font-size:13px;color:var(--mut);margin-top:4px;line-height:1.5;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:12px auto 4px;max-width:1100px;font-size:11px;color:var(--mut);}
+.legend span{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--bd);border-radius:999px;padding:4px 10px;}
+.dotL{width:9px;height:9px;border-radius:50%;background:var(--acc);display:inline-block}
+.dotT{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px rgba(122,59,132,.22);display:inline-block}
+.sec{max-width:1100px;margin:34px auto 14px;}
+.sec h2{font-size:16px;font-weight:800;color:var(--acc);letter-spacing:.02em;}
+.sec p{font-size:12px;color:var(--mut);margin-top:3px;line-height:1.5;}
+.grid{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:26px;justify-content:center;}
+.wrap{width:302px;}
+.frame{width:302px;height:600px;background:#fff;border:2px solid #2A2530;border-radius:26px;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.hd{min-height:42px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #EBE7EE;}
+.hd .bk{width:16px;height:16px;border:2px solid var(--mut);border-radius:4px;flex:none}
+.hd b{font-size:12px;}
+.hd .sp{flex:1}
+.ic{width:18px;height:18px;border:1.6px dashed var(--bd);border-radius:5px;}
+.body{flex:1;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.blk{background:var(--blk);border-radius:9px;}
+.ln{height:8px;border-radius:4px;background:var(--ln);}
+.w25{width:25%}.w40{width:40%}.w55{width:55%}.w70{width:70%}.w85{width:85%}.w100{width:100%}
+.row{display:flex;gap:8px;align-items:center;}
+.col{display:flex;flex-direction:column;gap:6px;}
+.btn{background:var(--acc);color:#fff;border-radius:10px;padding:11px;text-align:center;font-weight:700;font-size:11.5px;}
+.btno{border:1.6px dashed var(--acc);color:var(--acc);border-radius:10px;padding:10px;text-align:center;font-weight:700;font-size:11.5px;background:#FBF7FC;}
+.btng{border:1.4px solid var(--bd);color:var(--mut);border-radius:10px;padding:9px;text-align:center;font-weight:600;font-size:11px;}
+.chip{border:1px solid var(--bd);border-radius:999px;padding:4px 9px;font-size:9.5px;color:var(--mut);white-space:nowrap}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.card{border:1px solid #E7E2EA;border-radius:10px;padding:9px;display:flex;flex-direction:column;gap:6px;}
+.note-in{font-size:9px;color:var(--acc);background:#F6EEF7;border-radius:6px;padding:5px 7px;line-height:1.4}
+.map{flex:1;background:#EFEBF1;border-radius:12px;position:relative;overflow:hidden;min-height:120px;}
+.map:after{content:"";position:absolute;left:20%;top:-10%;width:14%;height:120%;background:#E3DCE7;transform:rotate(14deg);border-radius:40px;}
+.dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--acc);z-index:2}
+.dot.tw{box-shadow:0 0 0 4px rgba(122,59,132,.22)}
+.clu{position:absolute;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--acc);color:var(--acc);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2}
+.fuzz{position:absolute;width:64px;height:64px;border-radius:50%;background:rgba(122,59,132,.14);border:1.5px dashed var(--acc);z-index:2}
+.pill{position:absolute;top:8px;left:8px;right:8px;background:#fff;border:1px solid var(--bd);border-radius:999px;padding:7px 10px;font-size:10px;color:var(--mut);z-index:3;display:flex;gap:6px;align-items:center}
+.sheet{position:absolute;left:8px;right:8px;bottom:8px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:9px;z-index:3;display:flex;flex-direction:column;gap:6px}
+.nav{height:50px;border-top:1px solid #E7E2EA;display:flex;align-items:stretch;position:relative;}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:8px;color:#948CA0;}
+.nv i{width:15px;height:15px;border:1.6px solid #B9B1C2;border-radius:4px;font-style:normal}
+.nv.on{color:var(--acc);font-weight:700}.nv.on i{border-color:var(--acc)}
+.fabnav{flex:1;position:relative}
+.fab{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;background:var(--acc);color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(122,59,132,.4)}
+.steps{display:flex;gap:4px;}
+.st{flex:1;height:6px;border-radius:3px;background:var(--ln);}
+.st.on{background:var(--acc)}
+.stlbl{display:flex;justify-content:space-between;font-size:8px;color:var(--mut)}
+.msgs{display:flex;flex-direction:column;gap:5px;}
+.m1,.m2{max-width:75%;border-radius:10px;padding:7px 9px;font-size:9.5px;line-height:1.35}
+.m1{background:#F1EDF3;align-self:flex-start;color:#4A4352}
+.m2{background:var(--acc);color:#fff;align-self:flex-end}
+.stars{font-size:18px;letter-spacing:4px;color:var(--acc)}
+.bar{height:9px;border-radius:5px;background:var(--ln);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:5px}
+.tag{display:inline-block;background:#2A2530;color:#fff;font-size:9px;font-weight:800;border-radius:5px;padding:2px 6px;vertical-align:middle;margin-left:6px}
+.cap{margin-top:9px;width:302px}
+.cap h4{font-size:13px;font-weight:800}
+.cap p{font-size:11px;color:var(--mut);line-height:1.5;margin-top:3px}
+.dframe{width:640px;max-width:96vw;height:340px;background:#fff;border:2px solid #2A2530;border-radius:14px;display:flex;overflow:hidden}
+.side{width:130px;border-right:1px solid #E7E2EA;padding:10px;display:flex;flex-direction:column;gap:8px}
+.main{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px}
+.trow{display:flex;gap:8px;align-items:center;border:1px solid #EFEAF1;border-radius:8px;padding:7px}
+.avat{width:26px;height:26px;border-radius:50%;background:var(--ln);flex:none}
+.avat.aura{box-shadow:0 0 0 4px rgba(122,59,132,.22)}
+.split{display:flex;gap:8px}
+.split .card{flex:1}
+.tabs{display:flex;gap:0;border-bottom:1px solid #E7E2EA}
+.tab{flex:1;text-align:center;font-size:10px;padding:7px 0;color:var(--mut)}
+.tab.on{color:var(--acc);font-weight:800;border-bottom:2px solid var(--acc)}
+.kv{display:flex;justify-content:space-between;font-size:10px;color:var(--mut)}
+.kv b{color:var(--ink);font-size:11px}
+.big{font-size:22px;font-weight:800;color:var(--ink)}
+.hint{font-size:9px;color:var(--mut);line-height:1.4}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>SUPERPLUMP — Wireframe toàn bộ màn hình · V1</h1>
+  <p>24 màn mobile (PWA) + 2 màn admin. Mỗi màn gắn tag milestone khớp Kế hoạch Build (M0–M7). Đây là wireframe cấu trúc &amp; luồng — chưa phải visual design.</p>
+</header>
+<div class="legend">
+  <span><span class="dotL"></span> Plumper (người)</span>
+  <span><span class="dotT"></span> Bản thể số (aura)</span>
+  <span>▣ nét đứt = placeholder</span>
+  <span style="color:#7A3B84;font-weight:700">Nút tím = hành động chính</span>
+  <span>⬤ mờ = vị trí làm mờ ~300m</span>
+</div>
+
+<!-- ================= A ================= -->
+<div class="sec">
+  <h2>A · CÔNG KHAI &amp; VÀO CỬA</h2>
+  <p>Luồng: A1 (xem tự do) → A2 (chi tiết drop, URL share được) → A3 (OTP) → A4 (KYC) → vào B. "Ô cửa sổ mở cho tất cả — cánh cửa mở bằng tên thật."</p>
+</div>
+<div class="grid">
+
+<div class="wrap"><div class="frame">
+  <div class="body" style="padding:0">
+    <div class="map" style="border-radius:0">
+      <div class="pill">🔍 Tìm quanh đây <span class="sp"></span> <span class="chip">Loại việc ▾</span> <span class="chip">VI ▾</span></div>
+      <div class="dot" style="left:22%;top:30%"></div>
+      <div class="dot" style="left:60%;top:24%"></div>
+      <div class="dot tw" style="left:44%;top:46%"></div>
+      <div class="dot" style="left:74%;top:58%"></div>
+      <div class="dot tw" style="left:30%;top:66%"></div>
+      <div class="clu" style="left:64%;top:74%">12</div>
+      <div class="sheet">
+        <div class="row"><div class="ln w70"></div></div>
+        <div class="hint">Quanh đây: <b>24 việc đang mở</b> · <b>8 bản thể số</b> đang trực · 5 deal vừa chốt hôm nay</div>
+        <div class="btn">Tham gia — xác minh danh tính</div>
+      </div>
+    </div>
+  </div>
+</div><div class="cap"><h4>A1 · Bản đồ sống — chế độ khách 👀 <span class="tag">M1</span></h4><p>Map là trang chủ. Không cần tài khoản: xem mọi chấm, mọi drop. Chấm luôn ở vị trí mờ. CTA duy nhất dẫn tới cánh cửa KYC.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Chi tiết việc</b><span class="sp"></span><div class="ic" title="share"></div></div>
+  <div class="body">
+    <div class="chips"><span class="chip on">Dịch thuật · Việc số</span><span class="chip">Cần bằng chứng</span></div>
+    <div class="ln w85"></div><div class="ln w55"></div>
+    <div class="card">
+      <div class="kv"><span>Giá đề nghị</span><b class="big">120.000đ</b></div>
+      <div class="note-in">Giá do hai bên tự quyết — bạn có thể ngỏ giá khác</div>
+      <div class="kv"><span>Giá tham khảo khu này</span><b>90–150k · 12 việc gần đây</b></div>
+    </div>
+    <div class="map" style="min-height:86px;flex:none"><div class="fuzz" style="left:36%;top:14%"></div></div>
+    <div class="hint">Khu vực hiển thị mờ ~300m · Vị trí chính xác mở sau khi chốt deal</div>
+    <div class="row"><div class="avat"></div><div class="col" style="flex:1"><div class="ln w55"></div><div class="ln w40"></div></div><span class="chip">Mận Bạc ★4.9</span></div>
+    <div class="btn">Ngỏ lời nhận việc</div>
+  </div>
+</div><div class="cap"><h4>A2 · Chi tiết Drop (public, share URL) <span class="tag">M2</span></h4><p>Mỗi drop = 1 URL share Zalo/FB. Giá tham khảo sinh từ dữ liệu giao dịch thật (bàn tay vô hình), không phải giá áp đặt. Khách bấm CTA → A3.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>SuperPlump</b></div>
+  <div class="body" style="justify-content:center;gap:12px">
+    <div class="ln w40" style="align-self:center"></div>
+    <div class="card"><div class="hint">Số điện thoại</div><div class="blk" style="height:38px"></div></div>
+    <div class="btn">Nhận mã OTP</div>
+    <div class="row" style="justify-content:center;gap:6px">
+      <div class="blk" style="width:34px;height:42px"></div><div class="blk" style="width:34px;height:42px"></div><div class="blk" style="width:34px;height:42px"></div><div class="blk" style="width:34px;height:42px"></div><div class="blk" style="width:34px;height:42px"></div><div class="blk" style="width:34px;height:42px"></div>
+    </div>
+    <div class="hint" style="text-align:center">Tên + ảnh đại diện thiết lập ngay sau bước này</div>
+  </div>
+</div><div class="cap"><h4>A3 · Đăng nhập OTP <span class="tag">M0</span></h4><p>Phone-first (Supabase Auth). Một số điện thoại = một danh tính. Xong OTP → tạo hồ sơ tối giản (tên, avatar).</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Xác minh danh tính</b></div>
+  <div class="body">
+    <div class="note-in">Ô cửa sổ mở cho tất cả. Cánh cửa mở bằng tên thật — muốn thả việc, nhận việc, hay thả bản thể số: bắt buộc bước này.</div>
+    <div class="card"><div class="row"><b style="color:var(--acc)">1</b><div class="ln w70"></div></div><div class="blk" style="height:64px"></div><div class="hint">Chụp CCCD mặt trước &amp; sau</div></div>
+    <div class="card"><div class="row"><b style="color:var(--acc)">2</b><div class="ln w55"></div></div><div class="blk" style="height:52px;border-radius:50%;width:52px;align-self:center"></div><div class="hint">Selfie xác thực khuôn mặt</div></div>
+    <div class="card"><div class="row"><b style="color:var(--acc)">3</b><div class="ln w40"></div></div><div class="hint">Chờ duyệt (thường trong vài giờ) · trạng thái: <b>Đang chờ ⏳ / Đã xác minh ✓</b></div></div>
+    <div class="btn">Gửi hồ sơ</div>
+  </div>
+</div><div class="cap"><h4>A4 · Cổng KYC <span class="tag">M6</span></h4><p>V1: duyệt thủ công qua admin queue. Seam sẵn cho eKYC (VNPT/FPT) ở V2. Chưa verified thì mọi nút hành động dẫn về đây.</p></div></div>
+
+</div>
+
+<!-- ================= B ================= -->
+<div class="sec">
+  <h2>B · CHỢ &amp; GIAO DỊCH</h2>
+  <p>Luồng thả: B1 → B2. Luồng nhận: B1 → A2 → B3 (thương lượng) → B4 (deal) → B5 (bằng chứng) → B6 (đánh giá mù). B7 quản lý tất cả.</p>
+</div>
+<div class="grid">
+
+<div class="wrap"><div class="frame">
+  <div class="body" style="padding:0">
+    <div class="map" style="border-radius:0">
+      <div class="pill">🔍 <span class="sp"></span> <span class="chip on">Tại chỗ</span> <span class="chip">Việc số</span></div>
+      <div class="dot" style="left:18%;top:28%"></div>
+      <div class="dot" style="left:58%;top:36%"></div>
+      <div class="dot tw" style="left:40%;top:52%"></div>
+      <div class="clu" style="left:70%;top:64%">7</div>
+      <div class="dot" style="left:26%;top:72%"></div>
+      <div class="sheet"><div class="hint"><b>Vệt sáng</b> bay khi có deal chốt gần bạn · chấm <b>đập nhịp</b> = việc mới</div></div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nv on"><i></i>Bản đồ</div>
+    <div class="nv"><i></i>Việc của tôi</div>
+    <div class="fabnav"><div class="fab">+</div></div>
+    <div class="nv"><i></i>Twin</div>
+    <div class="nv"><i></i>Tôi</div>
+  </div>
+</div><div class="cap"><h4>B1 · Bản đồ chính (đã đăng nhập) <span class="tag">M1</span></h4><p>Bottom nav 5 mục, FAB "+" = Thả Plump. Toggle Tại chỗ/Việc số. Ngày–đêm theo giờ thật, mưa khi Sài Gòn mưa (lớp Pixi).</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Thả Plump</b><span class="sp"></span><span class="hint">bước 2/5</span></div>
+  <div class="body">
+    <div class="steps"><div class="st on"></div><div class="st on"></div><div class="st"></div><div class="st"></div><div class="st"></div></div>
+    <div class="chips"><span class="chip on">Việc tại chỗ</span><span class="chip">Việc số (twin nhận được)</span></div>
+    <div class="card"><div class="hint">Mô tả việc</div><div class="ln w100"></div><div class="ln w85"></div><div class="ln w55"></div></div>
+    <div class="map" style="min-height:78px;flex:none"><div class="fuzz" style="left:40%;top:10%"></div></div>
+    <div class="hint">Ghim vị trí — người khác chỉ thấy mờ ~300m tới khi chốt</div>
+    <div class="row"><div class="card" style="flex:1"><div class="hint">Khung giờ</div><div class="ln w70"></div></div><div class="card" style="flex:1"><div class="hint">Giá đề nghị</div><b>100.000đ</b></div></div>
+    <div class="note-in">Tham khảo: việc tương tự khu này 90–140k · chỉ để bạn biết, giá là của bạn</div>
+    <div class="btn">Thả lên bản đồ</div>
+  </div>
+</div><div class="cap"><h4>B2 · Tạo PlumpDrop <span class="tag">M2</span></h4><p>Wizard 5 bước: loại → mô tả → ghim → giờ → giá. Việc số bỏ qua bước ghim (neo khu của chủ). Gợi ý giá từ dữ liệu thật, không ép.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Thương lượng</b><span class="sp"></span><span class="chip">Vòng 2</span></div>
+  <div class="body">
+    <div class="card"><div class="ln w70"></div><div class="kv"><span>Họ đề nghị</span><b>120.000đ</b></div><div class="kv"><span>Bạn vừa ngỏ</span><b style="color:var(--acc)">100.000đ</b></div></div>
+    <div class="chips"><span class="chip">−10k</span><span class="chip">−5k</span><span class="chip on">Giữ 100k</span><span class="chip">+5k</span><span class="chip">+10k</span><span class="chip">Nhập…</span></div>
+    <div class="btn">Chốt giá này ✓</div>
+    <div class="msgs">
+      <div class="m1">Việc gấp trong chiều nay được không bạn?</div>
+      <div class="m2">Được, 3h mình bắt đầu nhé</div>
+      <div class="m1">OK chốt 110k thì mình đồng ý luôn</div>
+    </div>
+    <div class="row"><div class="blk" style="flex:1;height:34px;border-radius:999px"></div><div class="btn" style="padding:8px 12px">Gửi</div></div>
+  </div>
+</div><div class="cap"><h4>B3 · Ngỏ lời &amp; mặc cả <span class="tag">M2</span></h4><p>Chip giá một chạm giữ đúng tinh thần "đôi câu qua lại". Mỗi offer được lưu = một điểm dữ liệu giá cho thị trường. "Chốt" → khóa tiền → B4.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Deal #2841</b><span class="sp"></span><span class="chip on">Đang làm</span></div>
+  <div class="body">
+    <div class="steps"><div class="st on"></div><div class="st on"></div><div class="st on"></div><div class="st"></div><div class="st"></div></div>
+    <div class="stlbl"><span>Chốt</span><span>Khóa tiền</span><span>Đang làm</span><span>Bằng chứng</span><span>Hoàn tất</span></div>
+    <div class="card"><div class="kv"><span>🔒 Đang giữ an toàn</span><b>110.000đ</b></div><div class="hint">Phí 5% mỗi bên, minh bạch · trao khi việc xác nhận xong</div></div>
+    <div class="card"><div class="hint">Vị trí chính xác — đã mở khóa cho 2 bên</div><div class="map" style="min-height:56px"><div class="dot" style="left:48%;top:34%"></div></div><div class="ln w70"></div></div>
+    <div class="btn">Nộp bằng chứng hoàn thành</div>
+    <div class="row"><div class="btng" style="flex:1">Chat</div><div class="btng" style="flex:1">Tranh chấp</div></div>
+  </div>
+</div><div class="cap"><h4>B4 · Màn Deal — vòng đời <span class="tag">M3</span></h4><p>Màn quan trọng nhất. Progress = máy trạng thái thật. CTA đổi theo vai &amp; trạng thái (người thả thấy "Xác nhận" + đồng hồ auto-confirm). Vị trí thật chỉ hiện ở đây.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Nộp bằng chứng</b></div>
+  <div class="body">
+    <div class="row"><div class="blk" style="flex:1;height:92px"></div><div class="blk" style="flex:1;height:92px;border:1.6px dashed var(--bd);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--mut)">＋</div></div>
+    <div class="card"><div class="hint">Ghi chú cho người thả</div><div class="ln w85"></div><div class="ln w55"></div></div>
+    <div class="note-in">Niềm tin không xây trên lời hứa suông — ảnh/video là một phần của giao dịch, lưu vào hồ sơ deal.</div>
+    <div class="btn">Gửi &amp; chờ xác nhận</div>
+    <div class="hint" style="text-align:center">Nếu người thả im lặng quá 12 giờ → hệ thống tự xác nhận để bảo vệ bạn</div>
+  </div>
+</div><div class="cap"><h4>B5 · Bằng chứng <span class="tag">M3</span></h4><p>Upload → deal sang SUBMITTED. Auto-confirm timer hiển thị công khai cho cả hai — luật chơi rõ ràng.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Đánh giá</b></div>
+  <div class="body" style="gap:10px">
+    <div class="note-in">✍️ Viết trong mù: đối phương không thấy trước khi bạn gửi. Đã gửi là không sửa, không xóa.</div>
+    <div class="stars">★ ★ ★ ★ ☆</div>
+    <div class="card"><div class="ln w100"></div><div class="ln w85"></div><div class="ln w40"></div></div>
+    <div class="btn">Gửi đánh giá</div>
+    <div class="card"><div class="kv"><span>Trạng thái đối phương</span><b>Đã gửi ✓ (ẩn tới khi bạn gửi)</b></div></div>
+    <div class="hint">PlumpRank của cả hai cập nhật khi hai đánh giá cùng mở.</div>
+  </div>
+</div><div class="cap"><h4>B6 · Đánh giá mù <span class="tag">M4</span></h4><p>Rule hiển thị: chỉ mở khi cả hai đã nộp hoặc hết cửa sổ. Bảng reviews không có quyền UPDATE/DELETE — bất biến ở tầng DB.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Việc của tôi</b></div>
+  <div class="body" style="gap:8px">
+    <div class="tabs"><div class="tab on">Đang thả</div><div class="tab">Đang nhận</div><div class="tab">Twin làm</div><div class="tab">Lịch sử</div></div>
+    <div class="card"><div class="row"><div class="ln w55"></div><span class="sp"></span><span class="chip on">2 lời ngỏ</span></div><div class="kv"><span>Dọn kho D.7</span><b>100k</b></div></div>
+    <div class="card"><div class="row"><div class="ln w55"></div><span class="sp"></span><span class="chip">Chờ xác nhận</span></div><div class="kv"><span>Dịch tài liệu</span><b>110k</b></div><div class="hint">⏱ auto-confirm sau 8:12:33</div></div>
+    <div class="card"><div class="row"><div class="ln w40"></div><span class="sp"></span><span class="chip">Hoàn tất ✓</span></div></div>
+  </div>
+  <div class="nav"><div class="nv"><i></i>Bản đồ</div><div class="nv on"><i></i>Việc của tôi</div><div class="fabnav"><div class="fab">+</div></div><div class="nv"><i></i>Twin</div><div class="nv"><i></i>Tôi</div></div>
+</div><div class="cap"><h4>B7 · Việc của tôi <span class="tag">M2–M3</span></h4><p>Một chỗ cho cả hai vai + việc twin làm. Card nào cũng nhảy thẳng về B4 đúng trạng thái.</p></div></div>
+
+</div>
+
+<!-- ================= C ================= -->
+<div class="sec">
+  <h2>C · VÍ &amp; MINH BẠCH</h2>
+  <p>Tiền và sự thật. C1–C2 là ví Coin (escrow nội bộ V1). C3 là hồ sơ công khai hai chiều — điểm mạnh phải giữ nguyên.</p>
+</div>
+<div class="grid">
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Ví của tôi</b></div>
+  <div class="body">
+    <div class="split">
+      <div class="card"><div class="hint">Khả dụng</div><div class="big">1.240k</div></div>
+      <div class="card"><div class="hint">🔒 Đang giữ (escrow)</div><div class="big">110k</div></div>
+    </div>
+    <div class="btn">Nạp Plump Coin</div>
+    <div class="hint" style="font-weight:700;color:var(--ink)">Sổ bút toán — không xóa được</div>
+    <div class="card"><div class="kv"><span>Release · Deal #2841</span><b style="color:var(--acc)">+104.5k</b></div><div class="hint">đã trừ phí 5% phía nhận</div></div>
+    <div class="card"><div class="kv"><span>Hold · Deal #2903</span><b>−110k</b></div></div>
+    <div class="card"><div class="kv"><span>Nạp Coin</span><b style="color:var(--acc)">+500k</b></div></div>
+  </div>
+</div><div class="cap"><h4>C1 · Ví <span class="tag">M3</span></h4><p>available/held tách rõ. Mọi dòng là bút toán ledger thật, bấm vào ra deal tương ứng. Đối soát đêm: ví = Σ ledger.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Nạp Coin</b></div>
+  <div class="body">
+    <div class="chips"><span class="chip">100k</span><span class="chip on">500k</span><span class="chip">1.000k</span><span class="chip">Khác…</span></div>
+    <div class="card" style="align-items:center"><div class="blk" style="width:120px;height:120px"></div><div class="hint">Quét QR chuyển khoản · nội dung: PLUMP-8231</div></div>
+    <div class="card"><div class="kv"><span>Trạng thái</span><b>Chờ xác nhận ⏳</b></div><div class="hint">V1: admin đối soát thủ công · V2: cổng thanh toán tự động (seam sẵn)</div></div>
+  </div>
+</div><div class="cap"><h4>C2 · Nạp Coin <span class="tag">M3</span></h4><p>V1 pilot: chuyển khoản + đối soát. Rail tiền thật (nạp/rút tự động) cắm sau qua đối tác có giấy phép — đúng kế hoạch.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>PlumpLife</b><span class="sp"></span><div class="ic"></div></div>
+  <div class="body">
+    <div class="row"><div class="avat" style="width:46px;height:46px"></div><div class="col" style="flex:1"><div class="ln w55"></div><div class="chips"><span class="chip on">Mận Bạc</span><span class="chip">PlumpRank 1.284</span></div></div></div>
+    <div class="bar"><i style="width:62%"></i></div><div class="hint">Còn 340 rank tới <b>Mận Vàng</b></div>
+    <div class="split">
+      <div class="card"><div class="hint" style="font-weight:800;color:var(--ink)">KHI THẢ VIỆC</div><div class="kv"><span>Đã thả</span><b>23</b></div><div class="kv"><span>Xác nhận đúng hạn</span><b>96%</b></div><div class="kv"><span>Tỉ lệ hủy</span><b>4%</b></div></div>
+      <div class="card"><div class="hint" style="font-weight:800;color:var(--ink)">KHI NHẬN VIỆC</div><div class="kv"><span>Hoàn thành</span><b>41</b></div><div class="kv"><span>Đúng hẹn</span><b>98%</b></div><div class="kv"><span>Rating</span><b>★4.9</b></div></div>
+    </div>
+    <div class="tabs"><div class="tab on">Hành trình</div><div class="tab">Bản sắc</div><div class="tab">Đánh giá</div></div>
+    <div class="card"><div class="ln w85"></div><div class="ln w55"></div></div>
+  </div>
+</div><div class="cap"><h4>C3 · PlumpLife — hồ sơ công khai 2 chiều <span class="tag">M4</span></h4><p>Điểm khác biệt: người thả cũng có chỉ số công khai (xác nhận, hủy) — minh bạch đối xứng. Toàn bộ số liệu render từ event log.</p></div></div>
+
+</div>
+
+<!-- ================= D ================= -->
+<div class="sec">
+  <h2>D · AI PLUMPER — BẢN THỂ SỐ</h2>
+  <p>Luồng: D1 → D2 (sinh) → D3 (vườn ươm) → D4 (thi Qualify) → D5 (điều hành) → D6 (duyệt bài, chế độ giám sát).</p>
+</div>
+<div class="grid">
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Twin của tôi</b></div>
+  <div class="body">
+    <div class="card">
+      <div class="row"><div class="avat aura" style="width:40px;height:40px"></div><div class="col" style="flex:1"><div class="ln w55"></div><div class="chips"><span class="chip on">Qualify: Dịch A–V 🥈</span><span class="chip">Giám sát</span></div></div></div>
+      <div class="kv"><span>⚡ Năng lượng Mận</span><b>36 / 50</b></div><div class="bar"><i style="width:72%"></i></div>
+      <div class="kv"><span>Đang làm</span><b>1 việc</b></div>
+      <div class="kv"><span>Twin kiếm được tuần này</span><b style="color:var(--acc)">+430k</b></div>
+    </div>
+    <div class="card"><div class="kv"><span>🔔 Chờ bạn duyệt</span><b>2 bài</b></div><div class="hint">SLA: khách đang chờ — sớm nhất còn 2h41'</div></div>
+    <div class="btno">＋ Sinh bản thể số mới (Mận Bạc: tối đa 1)</div>
+  </div>
+  <div class="nav"><div class="nv"><i></i>Bản đồ</div><div class="nv"><i></i>Việc của tôi</div><div class="fabnav"><div class="fab">+</div></div><div class="nv on"><i></i>Twin</div><div class="nv"><i></i>Tôi</div></div>
+</div><div class="cap"><h4>D1 · Twin home <span class="tag">M5</span></h4><p>Tổng quan: energy, autonomy, Qualify, thu nhập twin, hàng chờ duyệt. Số twin tối đa theo hạng Mận.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Sinh bản thể</b><span class="sp"></span><span class="hint">bước 3/4</span></div>
+  <div class="body">
+    <div class="steps"><div class="st on"></div><div class="st on"></div><div class="st on"></div><div class="st"></div></div>
+    <div class="row"><div class="avat aura" style="width:44px;height:44px"></div><div class="ln w55"></div></div>
+    <div class="chips"><span class="chip on">Dịch Anh–Việt</span><span class="chip on">Viết content</span><span class="chip">Bảng tính (V1.1)</span></div>
+    <div class="card"><div class="hint">Nạp mẫu công việc thật của bạn (bài dịch, bài viết cũ…)</div><div class="blk" style="height:44px;border:1.6px dashed var(--bd);background:#fff"></div><div class="hint">3 tệp đã nạp → twin học "chất" của bạn</div></div>
+    <div class="card"><div class="hint">Quy tắc phong cách</div><div class="ln w85"></div><div class="ln w55"></div></div>
+    <div class="btn">Vào Vườn ươm</div>
+  </div>
+</div><div class="cap"><h4>D2 · Sinh twin — dạy nó <span class="tag">M5</span></h4><p>SoulFile = kỹ năng + mẫu (embed pgvector) + quy tắc giọng. Nhãn "Bản thể số của [tên] ✓" gắn vĩnh viễn.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Vườn ươm 🌱</b></div>
+  <div class="body">
+    <div class="msgs">
+      <div class="m2">Dịch giúp đoạn email này sang tiếng Anh</div>
+      <div class="m1">Dear Mr. Nam, thank you for… <br><span style="color:var(--acc);font-weight:700">✎ Sửa bài này</span></div>
+      <div class="m2">"thank you" → "we appreciate" nhé, trang trọng hơn</div>
+      <div class="m1">Đã ghi nhớ ✓ — mình sẽ dùng giọng trang trọng cho email thương mại.</div>
+    </div>
+    <div class="note-in">Twin đã học từ <b>12 lần sửa</b> của bạn — mỗi lần sửa là một mẫu mới trong SoulFile.</div>
+    <div class="row"><div class="blk" style="flex:1;height:34px;border-radius:999px"></div><div class="btn" style="padding:8px 12px">Gửi</div></div>
+    <div class="btn">Đăng ký thi Qualify →</div>
+  </div>
+</div><div class="cap"><h4>D3 · Sandbox — vườn ươm <span class="tag">M5</span></h4><p>Giao việc thử, sửa bài → correction thành sample. Người chủ đầu tư công sức → gắn bó với twin (IKEA effect).</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Kỳ thi Qualify</b></div>
+  <div class="body">
+    <div class="chips"><span class="chip on">Dịch Anh–Việt</span><span class="chip">Viết content</span></div>
+    <div class="note-in">Thi chạy trên máy chủ, đề sinh biến thể — <b>bạn không can thiệp được</b>. Bản SoulFile dự thi sẽ bị khóa version nếu đậu.</div>
+    <div class="card"><div class="kv"><span>Twin đang làm bài…</span><b>2/3</b></div><div class="bar"><i style="width:66%"></i></div></div>
+    <div class="card">
+      <div class="kv"><span>Kiểm tra máy</span><b>Đạt ✓</b></div>
+      <div class="kv"><span>Giám khảo AI</span><b>8.6/10</b></div>
+      <div class="kv"><span>Người duyệt</span><b>Đang xem ⏳</b></div>
+    </div>
+    <div class="card" style="align-items:center"><b style="color:var(--acc);font-size:15px">🥈 QUALIFY BẠC — Dịch A–V</b><div class="hint">Rớt → nhận feedback + cooldown 7 ngày để dạy lại</div></div>
+  </div>
+</div><div class="cap"><h4>D4 · Thi Qualify <span class="tag">M5</span></h4><p>"Bằng lái cho AI" theo hạng mục: chấm 3 lớp (máy → AI-judge → người). Kết quả đóng dấu đồng/bạc/vàng.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Điều hành Twin</b></div>
+  <div class="body">
+    <div class="card"><div class="kv"><span>Chế độ hiện tại</span><b>Giám sát</b></div><div class="bar"><i style="width:70%"></i></div><div class="hint">Còn <b>3 việc tốt</b> nữa để mở khóa <b>Bán tự động</b> (việc nhỏ tự nộp)</div></div>
+    <div class="card"><div class="kv"><span>⚡ Năng lượng</span><b>36/50</b></div><div class="btno" style="padding:7px">Nạp năng lượng bằng Plump Coin</div></div>
+    <div class="card"><div class="kv"><span>Đang làm song song</span><b>1 / cap 2</b></div><div class="kv"><span>Tổng việc SETTLED</span><b>17 · ★4.8</b></div></div>
+    <div class="row"><div class="btng" style="flex:1">Tạm dừng twin</div><div class="btng" style="flex:1">Lịch sử việc</div></div>
+  </div>
+</div><div class="cap"><h4>D5 · Twin dashboard <span class="tag">M5</span></h4><p>Thang tin cậy hiển thị như game progression. Energy = sink Coin, cover chi phí API, chống spam — một cơ chế ba việc.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Duyệt bài twin</b><span class="sp"></span><span class="chip">⏱ 2h41'</span></div>
+  <div class="body">
+    <div class="card"><div class="hint">ĐỀ BÀI của khách</div><div class="ln w100"></div><div class="ln w70"></div></div>
+    <div class="card" style="border-color:var(--acc)"><div class="hint" style="color:var(--acc);font-weight:800">BÀI TWIN LÀM (draft)</div><div class="ln w100"></div><div class="ln w100"></div><div class="ln w85"></div><div class="ln w40"></div></div>
+    <div class="btn">Duyệt &amp; nộp cho khách</div>
+    <div class="row"><div class="btno" style="flex:1;padding:8px">Sửa rồi nộp</div><div class="btng" style="flex:1">Từ chối — dạy lại</div></div>
+    <div class="hint" style="text-align:center">Sửa của bạn được twin học lại tự động</div>
+  </div>
+</div><div class="cap"><h4>D6 · Duyệt draft (giám sát) <span class="tag">M5</span></h4><p>SLA đồng hồ đếm để khách không chờ mòn mỏi. Ba lối ra, lối nào cũng nuôi SoulFile khôn hơn.</p></div></div>
+
+</div>
+
+<!-- ================= E ================= -->
+<div class="sec">
+  <h2>E · HỆ THỐNG &amp; ADMIN</h2>
+  <p>E1–E3 phục vụ người dùng. E4–E5 là console vận hành (desktop) cho M6.</p>
+</div>
+<div class="grid">
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Thông báo</b></div>
+  <div class="body">
+    <div class="card"><div class="kv"><span>💬 Lời ngỏ mới — Dọn kho D.7</span><b>2'</b></div><div class="hint">Minh ngỏ 95k (bạn đề 100k)</div></div>
+    <div class="card"><div class="kv"><span>🔒 Deal #2903 đã khóa tiền</span><b>1h</b></div></div>
+    <div class="card"><div class="kv"><span>🤖 Twin cần bạn duyệt 1 bài</span><b>3h</b></div></div>
+    <div class="card"><div class="kv"><span>⏱ Auto-confirm chạy sau 4h nếu bạn im lặng</span><b>4h</b></div></div>
+    <div class="card"><div class="kv"><span>★ Cửa sổ đánh giá mù đang mở</span><b>1d</b></div></div>
+  </div>
+</div><div class="cap"><h4>E1 · Thông báo <span class="tag">M3–M5</span></h4><p>Mọi noti nhảy thẳng vào đúng màn đúng trạng thái. Web Push của PWA.</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><div class="bk"></div><b>Tranh chấp — Deal #2903</b></div>
+  <div class="body">
+    <div class="note-in">🔒 Tiền đã đóng băng. Hai bên vẫn chat được. Trọng tài xem toàn bộ bằng chứng + lịch sử.</div>
+    <div class="chips"><span class="chip on">Không đúng mô tả</span><span class="chip">Không hoàn thành</span><span class="chip">Khác</span></div>
+    <div class="card"><div class="hint">Trình bày của bạn</div><div class="ln w100"></div><div class="ln w70"></div></div>
+    <div class="row"><div class="blk" style="flex:1;height:56px"></div><div class="blk" style="flex:1;height:56px;border:1.6px dashed var(--bd);background:#fff"></div></div>
+    <div class="btn">Gửi hồ sơ tranh chấp</div>
+    <div class="card"><div class="kv"><span>Tiến trình</span><b>Đang xem xét ⏳</b></div><div class="hint">Kết quả: trả bên A / hoàn bên B / chia — kèm lý do, ghi vào events</div></div>
+  </div>
+</div><div class="cap"><h4>E2 · Tranh chấp <span class="tag">M6</span></h4><p>Freeze → hồ sơ → resolution ghi ledger + events. Lịch sử dispute hiện trên hồ sơ công khai của cả hai (minh bạch 2 chiều).</p></div></div>
+
+<div class="wrap"><div class="frame">
+  <div class="hd"><b>Cài đặt</b></div>
+  <div class="body">
+    <div class="card"><div class="kv"><span>🌐 Ngôn ngữ</span><b>Tiếng Việt ▾</b></div><div class="chips"><span class="chip on">VI</span><span class="chip">EN</span><span class="chip">中文</span><span class="chip">हिन्दी</span></div></div>
+    <div class="card"><div class="kv"><span>Danh tính</span><b>Đã xác minh ✓</b></div></div>
+    <div class="card"><div class="kv"><span>Thông báo</span><b>Bật</b></div></div>
+    <div class="card"><div class="kv"><span>Quyền riêng tư vị trí</span><b>Mờ 300m (mặc định)</b></div></div>
+    <div class="btng">Đăng xuất</div>
+  </div>
+</div><div class="cap"><h4>E3 · Cài đặt <span class="tag">M0</span></h4><p>4 ngôn ngữ là switch thật (next-intl), không phải trang trí — i18n cắm từ M0.</p></div></div>
+
+</div>
+
+<div class="grid" style="margin-top:26px">
+<div><div class="dframe">
+  <div class="side"><b style="font-size:11px">ADMIN</b><div class="chip on">KYC Queue (8)</div><div class="chip">Tranh chấp (2)</div><div class="chip">Đề thi Qualify</div><div class="chip">Categories</div><div class="chip">Đối soát nạp Coin</div></div>
+  <div class="main">
+    <b style="font-size:12px">Hàng đợi KYC</b>
+    <div class="trow"><div class="avat"></div><div class="ln w25"></div><div class="blk" style="width:70px;height:40px"></div><div class="blk" style="width:40px;height:40px;border-radius:50%"></div><span class="sp"></span><div class="btn" style="padding:7px 10px">Duyệt ✓</div><div class="btng" style="padding:7px 10px">Từ chối</div></div>
+    <div class="trow"><div class="avat"></div><div class="ln w25"></div><div class="blk" style="width:70px;height:40px"></div><div class="blk" style="width:40px;height:40px;border-radius:50%"></div><span class="sp"></span><div class="btn" style="padding:7px 10px">Duyệt ✓</div><div class="btng" style="padding:7px 10px">Từ chối</div></div>
+    <div class="hint">Mọi quyết định ghi events kèm admin id — audit được.</div>
+  </div>
+</div><div class="cap" style="width:auto"><h4>E4 · Admin — KYC queue <span class="tag">M6</span></h4><p>Desktop console. So khớp CCCD ↔ selfie, một chạm duyệt.</p></div></div>
+
+<div><div class="dframe">
+  <div class="side"><b style="font-size:11px">ADMIN</b><div class="chip">KYC Queue (8)</div><div class="chip on">Tranh chấp (2)</div><div class="chip">Đề thi Qualify</div><div class="chip">Categories</div><div class="chip">Đối soát nạp Coin</div></div>
+  <div class="main">
+    <b style="font-size:12px">Tranh chấp · Deal #2903 · 110k đang đóng băng</b>
+    <div class="row" style="align-items:flex-start"><div class="card" style="flex:1"><div class="hint">Hồ sơ bên thả</div><div class="ln w85"></div><div class="blk" style="height:36px"></div></div><div class="card" style="flex:1"><div class="hint">Hồ sơ bên nhận</div><div class="ln w85"></div><div class="blk" style="height:36px"></div></div></div>
+    <div class="card"><div class="hint">Timeline events của deal (từ log, không sửa được)</div><div class="ln w100"></div><div class="ln w70"></div></div>
+    <div class="row"><div class="btn" style="flex:1;padding:8px">Trao bên nhận</div><div class="btno" style="flex:1;padding:7px">Hoàn bên thả</div><div class="btng" style="flex:1">Chia %</div></div>
+  </div>
+</div><div class="cap" style="width:auto"><h4>E5 · Admin — Xử lý tranh chấp <span class="tag">M6</span></h4><p>Trọng tài đọc event log gốc. Ba nút resolution = ba đường ledger đã định nghĩa sẵn.</p></div></div>
+</div>
+
+<div class="sec" style="margin-top:40px">
+  <h2>GHI CHÚ UX XUYÊN SUỐT</h2>
+  <p>1) Vị trí mờ là mặc định vật lý — chỉ B4 (deal đã khóa) hiện vị trí thật. 2) Mọi con số tiền trên UI đọc từ ledger, không hardcode. 3) CTA chính luôn duy nhất mỗi màn. 4) Twin luôn có aura + nhãn "Bản thể số của [tên] ✓" ở mọi nơi xuất hiện. 5) Microcopy là luật chơi: "viết trong mù", "giá do hai bên tự quyết", "auto-confirm sau X giờ" — nói thẳng trên màn, không giấu trong điều khoản.</p>
+</div>
+
+</body>
+</html>

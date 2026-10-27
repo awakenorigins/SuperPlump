@@ -1,0 +1,22 @@
+# Prometheus alert rules — nối vào Alertmanager
+groups:
+  - name: superplump-money
+    rules:
+      - alert: LedgerMismatch
+        expr: plump_ledger_mismatch > 0
+        for: 30s
+        labels: { severity: critical }
+        annotations: { summary: "SỔ CÁI LỆCH — đóng băng giao dịch, điều tra ngay" }
+      - alert: EscrowNegative
+        expr: plump_escrow_balance < 0
+        labels: { severity: critical }
+  - name: superplump-service
+    rules:
+      - alert: ErrorRateHigh
+        expr: rate(plump_http_errors_total[5m]) / rate(plump_http_requests_total[5m]) > 0.02
+        for: 5m
+        labels: { severity: page }
+      - alert: LatencyP95High
+        expr: histogram_quantile(0.95, rate(plump_http_duration_ms_bucket[5m])) > 800
+        for: 10m
+        labels: { severity: warn }

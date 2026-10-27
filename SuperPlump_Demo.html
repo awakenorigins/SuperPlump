@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#FF5FA8">
+<title>SuperPlump — Bản demo tương tác V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#140718;--bg1:#22102C;
+  --glass:rgba(34,16,44,.62);--glass-lt:rgba(255,255,255,.07);--rim:rgba(255,255,255,.12);
+  --txt:#F8F0F7;--mut:#BA9FC6;
+  --pink:#FF5FA8;--pink2:#D643C8;--gold:#F3B94D;--mint:#5CE3B4;--danger:#FF7A6B;--r:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:'Be Vietnam Pro',-apple-system,'Segoe UI',Roboto,sans-serif;background:#0B0410;color:var(--txt);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#app{position:relative;width:100%;height:100dvh;overflow:hidden;background:var(--bg0);}
+@media(min-width:520px){#app{width:402px;height:min(860px,94dvh);border-radius:38px;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);}}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+button:active{transform:scale(.97);}
+input,textarea{font:inherit;}
+
+#map{position:absolute;inset:0;display:block;touch-action:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+.map-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(11,3,14,.55) 100%);}
+
+.glass{background:var(--glass);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border:1px solid var(--rim);border-radius:var(--r);}
+.glass-lt{background:var(--glass-lt);border:1px solid rgba(255,255,255,.09);border-radius:14px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:16px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink2));box-shadow:0 8px 24px rgba(255,95,168,.35);}
+.btn.gold{background:linear-gradient(135deg,#F3B94D,#E08A2E);box-shadow:0 8px 24px rgba(243,185,77,.3);color:#2A1503;}
+.btn.ghost{background:rgba(255,255,255,.08);box-shadow:none;border:1px solid var(--rim);}
+.btn.mint{background:linear-gradient(135deg,#5CE3B4,#2FB98B);box-shadow:0 8px 24px rgba(92,227,180,.28);color:#03291C;}
+.btn:disabled{opacity:.45;box-shadow:none;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--mut);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);white-space:nowrap;}
+.chip.on{color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink2));border-color:transparent;}
+.chip.gold{color:var(--gold);border-color:rgba(243,185,77,.4);}
+.h-row{display:flex;align-items:center;gap:10px;}
+.sp{flex:1;}.mut{color:var(--mut);}.small{font-size:12px;line-height:1.5;}
+.money{font-weight:800;}.money.g{color:var(--gold);}.money.p{color:var(--pink);}.money.m{color:var(--mint);}
+
+.hud{position:absolute;left:14px;right:14px;z-index:6;}
+.hud.top{top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:10px;}
+.searchbar{display:flex;align-items:center;gap:10px;padding:11px 14px;font-size:14px;color:var(--mut);}
+.searchbar b{color:var(--txt);font-weight:600;}
+.iconbtn{width:38px;height:38px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid var(--rim);position:relative;font-size:16px;}
+.badge{min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--pink);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;position:absolute;top:-4px;right:-4px;}
+.filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
+.filters::-webkit-scrollbar{display:none;}
+.livepill{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:112px;padding:9px 16px;font-size:12px;color:var(--mut);display:flex;gap:8px;align-items:center;border-radius:999px;}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint);animation:pp 1.6s infinite;}
+@keyframes pp{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* NAV luôn nổi trên các view gốc */
+.nav{position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:22;display:flex;align-items:stretch;height:66px;padding:0 6px;border-radius:24px;transition:transform .25s,opacity .25s;}
+.nav.hide{transform:translateY(120px);opacity:0;pointer-events:none;}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:600;color:#8E76A0;position:relative;}
+.nv svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.nv.on{color:#fff;}
+.nv.on svg{stroke:var(--pink);filter:drop-shadow(0 0 8px rgba(255,95,168,.6));}
+.nv .badge{top:4px;right:16px;}
+.fab-slot{width:74px;position:relative;}
+.fab{position:absolute;left:50%;top:-20px;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--pink2));display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(255,95,168,.5),0 0 0 6px rgba(255,95,168,.14);font-size:28px;font-weight:300;color:#fff;}
+
+/* VIEWS: gốc (dưới nav) & phụ (trên nav, có nút back) */
+.view{position:absolute;inset:0;background:linear-gradient(180deg,#1B0C24,#120618);display:none;flex-direction:column;overflow:hidden;animation:slidein .26s cubic-bezier(.2,.8,.25,1);}
+.view.root{z-index:14;}
+.view.sub{z-index:30;}
+.view.show{display:flex;}
+@keyframes slidein{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
+.vhead{display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 18px 12px;}
+.vhead h2{font-size:17px;font-weight:800;}
+.back{width:38px;height:38px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid var(--rim);font-size:18px;}
+.vbody{flex:1;overflow-y:auto;padding:6px 18px 30px;display:flex;flex-direction:column;gap:14px;}
+.view.root .vbody{padding-bottom:118px;} /* chừa chỗ cho nav */
+.vbody::-webkit-scrollbar{display:none;}
+.card{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.sect{font-size:11px;font-weight:800;letter-spacing:.14em;color:#9678AB;text-transform:uppercase;}
+
+.sheet-wrap{position:absolute;inset:0;z-index:40;display:none;}
+.sheet-wrap.show{display:block;}
+.scrim{position:absolute;inset:0;background:rgba(8,2,12,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:fade .25s;}
+@keyframes fade{from{opacity:0}}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;border-radius:28px 28px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));background:rgba(30,14,40,.93);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border-top:1px solid rgba(255,255,255,.14);display:flex;flex-direction:column;gap:13px;animation:up .3s cubic-bezier(.2,.9,.25,1);}
+.sheet::-webkit-scrollbar{display:none;}
+@keyframes up{from{transform:translateY(55%);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin:4px auto 2px;flex:none;}
+
+.avatar{width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(135deg,#7E3B95,#4A1D5E);border:1.5px solid rgba(255,255,255,.2);}
+.avatar.aura{box-shadow:0 0 0 3px rgba(243,185,77,.55),0 0 18px rgba(243,185,77,.5);}
+.stars{color:var(--gold);letter-spacing:2px;font-size:13px;}
+.stepper{display:flex;gap:5px;}
+.stp{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.12);}
+.stp.on{background:linear-gradient(90deg,var(--pink),var(--gold));box-shadow:0 0 8px rgba(255,95,168,.5);}
+.stlbl{display:flex;justify-content:space-between;font-size:9px;color:var(--mut);margin-top:5px;}
+.field{display:flex;flex-direction:column;gap:7px;}
+.field label{font-size:12px;font-weight:700;color:var(--mut);}
+.field input,.field textarea{width:100%;padding:14px;border-radius:14px;color:var(--txt);background:rgba(255,255,255,.06);border:1px solid var(--rim);outline:none;font-size:15px;}
+.field input:focus,.field textarea:focus{border-color:var(--pink);}
+.seg{display:flex;padding:4px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--rim);}
+.seg button{flex:1;padding:10px;border-radius:11px;font-size:13px;font-weight:700;color:var(--mut);}
+.seg button.on{background:linear-gradient(135deg,var(--pink),var(--pink2));color:#fff;}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.05);}
+.tabs button{flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;color:var(--mut);}
+.tabs button.on{background:rgba(255,255,255,.1);color:#fff;}
+.notice{display:flex;gap:9px;padding:11px 13px;border-radius:13px;font-size:12px;line-height:1.5;color:#F5D9A8;background:rgba(243,185,77,.09);border:1px solid rgba(243,185,77,.25);}
+.notice.pink{color:#FFC7E0;background:rgba(255,95,168,.09);border-color:rgba(255,95,168,.3);}
+.bar{height:9px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;}
+.bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold),#FFD98A);box-shadow:0 0 10px rgba(243,185,77,.55);}
+.bar.pink i{background:linear-gradient(90deg,var(--pink),var(--pink2));box-shadow:0 0 10px rgba(255,95,168,.5);}
+.kv{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mut);gap:10px;}
+.kv b{color:var(--txt);font-size:14px;font-weight:700;text-align:right;}
+.item{display:flex;align-items:center;gap:12px;padding:13px 14px;}
+.msgs{display:flex;flex-direction:column;gap:7px;}
+.mL,.mR{max-width:78%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.45;}
+.mL{align-self:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.07);border-bottom-left-radius:5px;}
+.mR{align-self:flex-end;background:linear-gradient(135deg,var(--pink),var(--pink2));border-bottom-right-radius:5px;}
+.pricechips{display:flex;gap:7px;flex-wrap:wrap;}
+.ring{position:relative;width:74px;height:74px;flex:none;}
+.ring svg{transform:rotate(-90deg);}
+.ring .avatar{position:absolute;inset:7px;width:auto;height:auto;font-size:20px;}
+.tl{display:flex;gap:12px;}
+.tl .dotln{width:14px;display:flex;flex-direction:column;align-items:center;}
+.tl .d{width:9px;height:9px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px rgba(255,95,168,.6);flex:none;margin-top:4px;}
+.tl .l{width:1.5px;flex:1;background:rgba(255,255,255,.12);}
+.photo{width:86px;height:86px;border-radius:14px;background:linear-gradient(135deg,#3A1B4A,#241030);border:1px solid var(--rim);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--mut);}
+.photo.add{border-style:dashed;border-color:rgba(255,95,168,.5);color:var(--pink);}
+#toast{position:absolute;left:50%;transform:translateX(-50%) translateY(-16px);top:calc(16px + env(safe-area-inset-top));z-index:90;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;background:rgba(24,10,32,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.16);transition:all .35s cubic-bezier(.2,.9,.3,1);max-width:92%;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#splash{position:absolute;inset:0;z-index:60;pointer-events:auto;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px calc(30px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(12,4,16,.15) 30%,rgba(12,4,16,.88) 78%);transition:opacity .5s,visibility .5s;}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none!important;}
+.logo{font-size:34px;font-weight:800;letter-spacing:.02em;line-height:1.05;}
+.logo i{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+/* Tiểu Tâm */
+.tam-orb{position:absolute;right:14px;bottom:192px;z-index:7;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#FF5FA8,#F3B94D);box-shadow:0 8px 24px rgba(255,95,168,.45),0 0 0 5px rgba(243,185,77,.15);animation:orb 3s ease-in-out infinite;}
+@keyframes orb{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.tam-nudge{position:absolute;right:74px;bottom:200px;z-index:7;padding:9px 13px;border-radius:14px;font-size:12px;font-weight:600;display:none;max-width:216px;line-height:1.4;}
+.tam-nudge.show{display:block;animation:up .3s;}
+.typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mut);margin-right:3px;animation:tp 1s infinite;}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes tp{0%,100%{opacity:.25}50%{opacity:1}}
+/* Tường nhà & feed */
+.moment{padding:0;overflow:hidden;}
+.mphoto{height:92px;background:linear-gradient(135deg,#4A1D5E,#2A0F38);display:flex;align-items:center;justify-content:center;font-size:30px;border-bottom:1px solid rgba(255,255,255,.07);}
+.mbody{padding:12px 14px;display:flex;flex-direction:column;gap:6px;}
+.tick{padding:10px 14px;font-size:12.5px;color:var(--mut);border:1px dashed rgba(255,255,255,.16);border-radius:14px;}
+/* ===== THEMES — cực hạn art ===== */
+body[data-theme="neo"]{--pink:#22E4FF;--pink2:#4D6BFF;--gold:#C6FF4A;--mint:#7CFFB2;--txt:#EAF9FF;--mut:#8FB6C9;--rim:rgba(120,220,255,.22);}
+body[data-theme="neo"] .glass{background:rgba(6,20,34,.62);}
+body[data-theme="neo"] .view{background:linear-gradient(180deg,#071426,#03080F);}
+body[data-theme="neo"] .sheet{background:rgba(6,22,38,.94);}
+body[data-theme="neo"] #app{background:#02060C;}
+body[data-theme="neo"] .fab,body[data-theme="neo"] .tam-orb{box-shadow:0 10px 28px rgba(34,228,255,.5),0 0 0 6px rgba(34,228,255,.14);}
+body[data-theme="cute"]{--txt:#4A2B3E;--mut:#9B7C90;--pink:#FF7AB8;--pink2:#FF9BC9;--gold:#FFB55C;--mint:#3FBF95;--rim:rgba(74,43,62,.14);--glass-lt:rgba(255,255,255,.72);}
+body[data-theme="cute"] .glass{background:rgba(255,255,255,.78);}
+body[data-theme="cute"] .view{background:linear-gradient(180deg,#FFF3F7,#FFE7F0);}
+body[data-theme="cute"] .sheet{background:rgba(255,250,252,.96);border-top-color:rgba(74,43,62,.12);}
+body[data-theme="cute"] #app{background:#FFEFF5;}
+body[data-theme="cute"] .mL{background:#F8E6EF;border-color:transparent;}
+body[data-theme="cute"] .tick{border-color:rgba(74,43,62,.22);}
+body[data-theme="cute"] #toast{background:rgba(255,255,255,.96);color:#4A2B3E;border-color:rgba(74,43,62,.16);}
+body[data-theme="cute"] .nv{color:#B893A8;}
+body[data-theme="cute"] .map-vignette{background:radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(255,214,231,.5) 100%);}
+/* ===== SHOP / STORE / WALLET / BOARD ===== */
+.hub{display:flex;gap:8px;}
+.hub button{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:13px 6px;border-radius:16px;font-size:11px;font-weight:700;background:var(--glass-lt);border:1px solid var(--rim);}
+.hub button i{font-style:normal;font-size:20px;}
+.cur{display:inline-flex;align-items:center;gap:4px;font-weight:800;}
+.cur.n{color:#7FD8FF;}
+.cur.p{color:var(--gold);}
+body[data-theme="cute"] .cur.n{color:#3E8FD8;}
+.shopitem{display:flex;gap:12px;padding:13px;align-items:center;}
+.shopitem .ic{width:46px;height:46px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--glass-lt);border:1px solid var(--rim);}
+.rankrow{display:flex;align-items:center;gap:11px;padding:11px 13px;}
+.rankrow.me{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink) inset;}
+.rankrow .no{width:26px;font-weight:900;font-size:15px;color:var(--gold);text-align:center;flex:none;}
+.frame-gold{box-shadow:0 0 0 3px var(--gold),0 0 16px rgba(243,185,77,.55)!important;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+/* ==== TỔ MẬN: avatar ghép lớp + phòng 2.5D ==== */
+.plum-ava{position:relative;width:96px;height:96px;flex:none}
+.plum-ava .layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px}
+.plum-ava .body{border-radius:50%;background:radial-gradient(circle at 38% 34%,#FF8FC4,var(--acc,#FF5FA8));box-shadow:inset -6px -8px 0 rgba(0,0,0,.12)}
+.plum-ava .aura-ring{inset:-7px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 18px 3px #F3B94D;animation:auraPulse 2.4s ease-in-out infinite}
+@keyframes auraPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.plum-ava.sleeping .body{filter:saturate(.5) brightness(.8)}
+.plum-ava .zzz{position:absolute;top:-6px;right:-4px;font-size:13px;opacity:.85}
+.plum-ava .head{top:-16px;font-size:26px}
+.plum-ava .hand{right:-8px;bottom:16px;font-size:20px}
+.plum-ava .face{font-size:20px;margin-top:6px}
+.plum-ava.frame-gold{outline:none}
+.room2d{position:relative;height:230px;border-radius:18px;overflow:hidden;border:1px solid var(--rim);margin-bottom:14px}
+.room2d .wall{position:absolute;inset:0}
+.room2d .floor{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(#7a4a25,#5a3418);opacity:.9}
+.room2d .win{position:absolute;top:18px;left:18px;width:96px;height:74px;border-radius:8px;border:3px solid rgba(255,255,255,.5);background-size:cover;background-position:center;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.room2d .lamp{position:absolute;top:10px;right:22px;font-size:30px;filter:drop-shadow(0 0 12px #F3B94D)}
+.room2d .shelf{position:absolute;right:16px;bottom:82px;display:flex;gap:5px;font-size:20px}
+.room2d .avaspot{position:absolute;left:50%;bottom:26px;transform:translateX(-50%)}
+.room2d .twindesk{position:absolute;left:18px;bottom:80px;font-size:22px}
+.room2d .twindesk .work{position:absolute;top:-12px;left:14px;font-size:11px;animation:auraPulse 1s infinite}
+.room2d .music{position:absolute;left:16px;top:14px;font-size:15px;opacity:.9}
+.roomcard{background:rgba(255,255,255,.05);border:1px solid var(--rim);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.gbentry{border-left:2px solid var(--acc,#FF5FA8);padding:5px 0 5px 10px;margin:8px 0;font-size:12.5px}
+.slotrow{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
+.slotrow .chip{cursor:pointer}
+
+/* ==== THEME MỚI ==== */
+body[data-theme="cyber"]{--bg:#05070F;--acc:#00E5FF;--gold:#B69CFF}
+body[data-theme="cyber"] .glass{background:linear-gradient(135deg,rgba(0,229,255,.08),rgba(182,156,255,.06));border-color:rgba(0,229,255,.28);box-shadow:0 0 20px rgba(0,229,255,.12) inset}
+body[data-theme="cyber"] .canvas-sky{background:linear-gradient(#04101f,#0a0520)}
+body[data-theme="cyber"] .chip.on,body[data-theme="cyber"] .btn.primary{background:linear-gradient(120deg,#00E5FF,#B69CFF);color:#04121a;box-shadow:0 0 16px rgba(0,229,255,.5)}
+body[data-theme="candy"]{--bg:#3a2140;--acc:#FF8FD0;--gold:#FFD166}
+body[data-theme="candy"] .glass{background:linear-gradient(135deg,rgba(255,182,224,.16),rgba(255,236,180,.12));border-color:rgba(255,182,224,.4);border-radius:22px}
+body[data-theme="candy"] .canvas-sky{background:linear-gradient(#ffd6f0,#c9e6ff)}
+body[data-theme="candy"] .chip,body[data-theme="candy"] .btn{border-radius:999px}
+body[data-theme="candy"] .chip.on,body[data-theme="candy"] .btn.primary{background:linear-gradient(120deg,#FF8FD0,#FFB6E0);color:#5a2148}
+
+/* ==== TIN NHẮN ==== */
+.chatlist .item{display:flex;gap:11px;align-items:center;padding:12px;margin-bottom:9px;cursor:pointer}
+.chatlist .ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--acc,#FF5FA8),#D643C8);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.chatlist .unreadpill{background:var(--acc,#FF5FA8);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 8px}
+.chatwrap{display:flex;flex-direction:column;height:calc(100% - 4px)}
+.chatscroll{flex:1;overflow:auto;padding:6px 2px 10px}
+.bub{max-width:76%;padding:9px 12px;border-radius:16px;margin:5px 0;font-size:13.5px;line-height:1.45;position:relative;word-break:break-word}
+.bub.them{background:rgba(255,255,255,.09);border:1px solid var(--rim);border-bottom-left-radius:5px;margin-right:auto}
+.bub.me{background:linear-gradient(120deg,var(--acc,#FF5FA8),#D643C8);color:#fff;border-bottom-right-radius:5px;margin-left:auto}
+.bub .rline{font-size:11px;opacity:.75;border-left:2px solid currentColor;padding-left:7px;margin-bottom:4px;display:block}
+.bub.rev{opacity:.55;font-style:italic;background:transparent;border:1px dashed var(--rim);color:inherit}
+.bub .mtime{font-size:9.5px;opacity:.6;display:block;text-align:right;margin-top:3px}
+.bub .mact{position:absolute;top:-9px;right:-6px;background:#241026;border:1px solid var(--rim);border-radius:999px;font-size:10px;padding:1px 6px;cursor:pointer}
+.typingline{font-size:11.5px;color:var(--acc,#FF5FA8);height:16px;margin:2px 4px}
+.typingline .dots::after{content:'…';animation:auraPulse .9s infinite}
+.msgrow{display:flex;gap:8px;padding:8px 2px 2px;align-items:flex-end}
+.msgrow input{flex:1;background:rgba(255,255,255,.07);border:1px solid var(--rim);border-radius:999px;padding:11px 15px;color:inherit;font-size:13.5px;outline:none}
+.msgrow .send{width:44px;height:44px;border-radius:50%;border:none;background:linear-gradient(120deg,var(--acc,#FF5FA8),#D643C8);color:#fff;font-size:17px;cursor:pointer;flex:none}
+.replybar{display:flex;align-items:center;gap:8px;font-size:12px;background:rgba(255,255,255,.06);border-left:3px solid var(--acc,#FF5FA8);border-radius:8px;padding:6px 10px;margin:4px 2px}
+#msgBadge{position:absolute;top:-4px;right:-5px;background:#FF3B6B;color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 6px}
+
+/* ==== CHAT NÂNG CẤP ==== */
+.senderlbl{font-size:10.5px;color:var(--acc,#FF5FA8);margin:6px 4px -2px;font-weight:700}
+.imgbub{width:170px;height:110px;border-radius:14px;background:linear-gradient(135deg,#3a1f4a,#7a2f6a 55%,#F3B94D);display:flex;align-items:center;justify-content:center;font-size:34px;margin:5px 0}
+.bub.me .imgbub{margin-left:auto}
+.locbub{width:190px;border-radius:14px;overflow:hidden;border:1px solid var(--rim);margin:5px 0}
+.locbub .locmap{position:relative;height:82px;background:linear-gradient(#16324a,#0e2438)}
+.locbub .locmap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.08) 22px 23px),repeating-linear-gradient(0deg,transparent 0 18px,rgba(255,255,255,.08) 18px 19px)}
+.locbub .pinemj{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.locbub .locinfo{padding:8px 10px;font-size:12px;background:rgba(255,255,255,.05)}
+.tipbub{background:linear-gradient(120deg,#F3B94D,#FFDf9a);color:#5a3a00;font-weight:800}
+.channelbar{display:flex;align-items:center;gap:8px;font-size:12px;padding:10px 12px;background:rgba(255,255,255,.06);border-radius:12px;margin:6px 2px}
+/* ==== SHEET TRANG BỊ KIỂU GAME ==== */
+.lvchip{border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800}
+.lv1{background:#3a3f52;color:#c9cede}.lv2{background:#14432a;color:#7FD97F}.lv3{background:#2a3550;color:#BFD3FF}
+.lv4{background:#4a3410;color:#F3B94D;box-shadow:0 0 10px rgba(243,185,77,.4)}
+.lv5{background:linear-gradient(120deg,#FF5FA8,#F3B94D);color:#fff;box-shadow:0 0 12px rgba(255,95,168,.55)}
+.gearGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.gcell{border:1.5px solid;border-radius:13px;padding:9px 6px;text-align:center;background:rgba(255,255,255,.04)}
+.gcell .gic{font-size:22px}.gcell .gn{font-size:10px;margin-top:3px;opacity:.85}.gcell .gs{font-size:9px;opacity:.6}
+.r-common{border-color:#4a4f62}.r-rare{border-color:#5CA8FF;box-shadow:0 0 8px rgba(92,168,255,.25)}
+.r-epic{border-color:#B69CFF;box-shadow:0 0 10px rgba(182,156,255,.3)}
+.r-legend{border-color:#F3B94D;box-shadow:0 0 12px rgba(243,185,77,.45)}
+.r-empty{border-color:#33384a;opacity:.5;border-style:dashed}
+.histrow{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px dashed var(--rim)}
+
+/* ==== FIX SHEET UX ==== */
+.sheethead{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;font-size:15.5px}
+.sheethead .x{margin-left:auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--rim);
+  background:rgba(255,255,255,.09);color:inherit;font-size:15px;cursor:pointer;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.sheethead .x:active{transform:scale(.92)}
+body.sheetopen #tamNudge,body.sheetopen #livepill,body.sheetopen #tamOrb{display:none!important}
+#zoomCtl{position:absolute;right:14px;bottom:260px;z-index:6;display:flex;flex-direction:column;gap:7px}
+#zoomCtl button{width:42px;height:42px;border-radius:50%;border:1px solid var(--rim);background:rgba(20,10,26,.72);
+ backdrop-filter:blur(8px);color:inherit;font-size:19px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#zoomCtl button:active{transform:scale(.9)}
+#mapModePill{position:absolute;left:14px;bottom:122px;z-index:6;display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;
+  background:rgba(20,10,26,.72);backdrop-filter:blur(8px);border:1px solid var(--rim);color:inherit}
+
+/* ==== CHIBI MẬN: avatar toàn thân ghép lớp ==== */
+.chibi{position:relative;width:112px;height:138px;flex:none}
+.chibi.small{transform:scale(.8);transform-origin:top left}
+.cb-aura{position:absolute;inset:-9px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 20px 4px #F3B94D;animation:auraPulse 2.4s infinite}
+.cb-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:58px;border-radius:50%;box-shadow:inset -5px -7px 0 rgba(0,0,0,.12)}
+.cb-leaf{position:absolute;top:-11px;left:54%;font-size:15px;transform:rotate(18deg)}
+.cb-face{position:absolute;top:17px;left:50%;transform:translateX(-50%);font-size:22px}
+.cb-hat{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:24px;z-index:3}
+.cb-body{position:absolute;top:50px;left:50%;transform:translateX(-50%);width:50px;height:44px;border-radius:15px 15px 12px 12px;box-shadow:inset -4px -5px 0 rgba(0,0,0,.14)}
+.cb-trim{position:absolute;left:0;right:0;bottom:0;height:7px;border-radius:0 0 12px 12px}
+.cb-chest{position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:12px}
+.cb-arm{position:absolute;top:54px;width:15px;height:15px;border-radius:50%;box-shadow:inset -2px -3px 0 rgba(0,0,0,.12)}
+.cb-arm.l{left:12px}.cb-arm.r{right:12px}
+.cb-hand{position:absolute;top:46px;right:-2px;font-size:17px;z-index:3}
+.cb-leg{position:absolute;top:92px;width:13px;height:17px;border-radius:7px;box-shadow:inset -2px -3px 0 rgba(0,0,0,.15)}
+.cb-leg.l{left:36px}.cb-leg.r{right:36px}
+.cb-pet{position:absolute;bottom:2px;right:-14px;font-size:23px;animation:petBob 1.7s ease-in-out infinite;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+@keyframes petBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.chibi.riding .cb-ride{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-size:52px;z-index:0;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.chibi.riding .cb-head{top:-14px}.chibi.riding .cb-face{top:3px}.chibi.riding .cb-hat{top:-30px}
+.chibi.riding .cb-body{top:36px}.chibi.riding .cb-arm{top:40px}.chibi.riding .cb-hand{top:32px}
+.chibi.riding .cb-leg{top:76px}
+.chibi.zz .cb-face{filter:grayscale(.3)}
+.swatch{width:26px;height:26px;border-radius:50%;border:2px solid var(--rim);cursor:pointer;display:inline-block}
+.swatch.on{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.5)}
+
+/* ==== MẬN NHÂN: phòng thay đồ ==== */
+.cb-frame{position:absolute;inset:-5px;border:3px solid #F3B94D;border-radius:26px;box-shadow:0 0 14px rgba(243,185,77,.55);pointer-events:none}
+.avstage{display:flex;flex-direction:column;align-items:center;padding:8px 0 2px}
+.avstage .chibi{transform:scale(1.35);transform-origin:center top;margin-bottom:52px}
+.pedestal{width:150px;height:22px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,95,168,.45),transparent 70%);margin-top:-46px}
+.gcell{cursor:pointer}.gcell:active{transform:scale(.95)}
+
+/* ==== POPUP MỞ QUÀ ==== */
+#giftModal{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;
+ background:rgba(8,3,12,.72);backdrop-filter:blur(4px)}
+#giftModal.show{display:flex;animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.giftCard{width:280px;border-radius:24px;padding:26px 22px;text-align:center;position:relative;
+ background:linear-gradient(160deg,#2a1240,#1a0a26);border:1px solid var(--rim);
+ box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.giftCard .rayburst{position:absolute;inset:0;border-radius:24px;overflow:hidden;pointer-events:none}
+.giftCard .rayburst::before{content:'';position:absolute;top:38%;left:50%;width:400px;height:400px;
+ transform:translate(-50%,-50%);background:conic-gradient(from 0deg,transparent 0 8deg,rgba(243,185,77,.14) 8deg 16deg,transparent 16deg 24deg);
+ animation:spin 9s linear infinite}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.giftBox{font-size:66px;display:inline-block;animation:boxShake .5s ease-in-out 3;transform-origin:bottom}
+@keyframes boxShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-11deg)}75%{transform:rotate(11deg)}}
+.giftBox.opened{animation:boxPop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes boxPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.giftReward{font-size:15px;margin-top:12px}
+.rarBadge{display:inline-block;border-radius:999px;padding:3px 14px;font-weight:800;font-size:12px;margin:8px 0}
+.spark{position:absolute;font-size:18px;animation:sparkFly .9s ease-out forwards;pointer-events:none}
+@keyframes sparkFly{0%{opacity:1;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.2)}}
+.giftBtn{margin-top:16px;width:100%;border:none;border-radius:14px;padding:12px;font-weight:800;font-size:14px;cursor:pointer;
+ background:linear-gradient(120deg,#FF5FA8,#F3B94D);color:#fff}
+.giftItemInfo{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;margin-top:10px;font-size:12px;text-align:left}
+/* ==== LOA CHÚC MỪNG TOÀN SERVER ==== */
+#serverFeed{position:fixed;top:calc(60px + env(safe-area-inset-top));left:0;right:0;z-index:210;
+ display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 12px}
+.srvToast{max-width:340px;width:100%;border-radius:13px;padding:9px 14px;font-size:12.5px;font-weight:600;
+ animation:srvIn .4s cubic-bezier(.2,1.5,.4,1),srvOut .4s ease-in forwards;animation-delay:0s,4s;
+ box-shadow:0 6px 22px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px}
+@keyframes srvIn{from{transform:translateY(-24px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes srvOut{to{transform:translateY(-16px);opacity:0}}
+.srv-common{background:linear-gradient(120deg,#3a3550,#2a2540);border:1px solid #4a4f62}
+.srv-rare{background:linear-gradient(120deg,#1e3a5a,#16283e);border:1px solid #5CA8FF}
+.srv-epic{background:linear-gradient(120deg,#3a2560,#241040);border:1px solid #B69CFF;box-shadow:0 0 20px rgba(182,156,255,.4)}
+.srv-legend{background:linear-gradient(120deg,#5a3410,#3a2200);border:1px solid #F3B94D;
+ box-shadow:0 0 26px rgba(243,185,77,.55);animation:srvIn .4s cubic-bezier(.2,1.5,.4,1),legendGlow 1.2s ease-in-out infinite 0.4s,srvOut .5s ease-in forwards;animation-delay:0s,0s,6s}
+@keyframes legendGlow{0%,100%{box-shadow:0 0 20px rgba(243,185,77,.4)}50%{box-shadow:0 0 34px rgba(243,185,77,.8)}}
+
+/* ==== CẤP BẬC ==== */
+.lvhero{text-align:center;padding:14px 0 6px}
+.lvbadge{display:inline-block;font-size:34px;font-weight:800;padding:10px 26px;border-radius:20px;
+ background:linear-gradient(135deg,var(--acc,#FF5FA8),#F3B94D);color:#fff;box-shadow:0 8px 30px rgba(255,95,168,.4)}
+.lvname{font-size:15px;font-weight:700;margin-top:10px}
+.lvprog{height:12px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin:14px 0 6px;position:relative}
+.lvprog>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#FF5FA8,#F3B94D);transition:width .6s}
+.lvfactors{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.lvfac{background:rgba(255,255,255,.05);border:1px solid var(--rim);border-radius:13px;padding:11px;text-align:center}
+.lvfac .v{font-size:20px;font-weight:800;color:#F3B94D}.lvfac .l{font-size:9px;color:var(--mut);margin-top:3px}
+.lvformula{background:rgba(243,185,77,.07);border:1px solid rgba(243,185,77,.22);border-radius:11px;
+ padding:11px 13px;font-size:11px;margin:10px 0;font-family:monospace;color:#F3B94D}
+.lvtier{display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;margin:4px 0;font-size:12px;border:1px solid var(--rim)}
+.lvtier.here{background:linear-gradient(90deg,rgba(255,95,168,.14),rgba(243,185,77,.1));border-color:rgba(255,95,168,.4)}
+.lvtier.locked{opacity:.5}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="map"></canvas>
+  <button id="mapModePill" onclick="toggleMapMode()">🗺️ Xem bản đồ thật</button>
+  <div id="zoomCtl">
+    <button onclick="zoomBtn(1.25)">＋</button>
+    <button onclick="zoomBtn(0.8)">－</button>
+    <button onclick="zoomReset()" title="Về giữa">⊙</button>
+  </div>
+  <div class="map-vignette"></div>
+
+  <!-- HUD -->
+  <div class="hud top" id="hud">
+    <div class="h-row">
+      <div class="searchbar glass" style="flex:1" onclick="openSearch()">
+        <span>🔍</span><span data-i="search">Tìm quanh <b>Sài Gòn</b>…</span>
+      </div>
+      <button class="iconbtn glass" onclick="push('board')">🏆</button>
+      <button class="iconbtn glass" style="position:relative" onclick="push('inbox')">💬<span id="msgBadge" style="display:none">0</span></button>
+      <button class="iconbtn glass" onclick="openSheet('notiSheet')">🔔<span class="badge">4</span></button>
+    </div>
+    <div class="filters">
+      <button class="chip on" onclick="filt(this,'all')" data-i="f_all">✦ Tất cả</button>
+      <button class="chip" onclick="filt(this,'local')" data-i="f_local">📍 Việc tại chỗ</button>
+      <button class="chip" onclick="filt(this,'digital')" data-i="f_dig">💻 Việc số</button>
+      <button class="chip" onclick="filt(this,'twin')" data-i="f_twin">🤖 Bản thể số</button>
+      <button class="chip gold" onclick="toast('🌙 Map sống theo giờ & thời tiết Sài Gòn thật — bản build nối OpenWeather')">🌙 21:47 · Quang mây</button>
+    </div>
+  </div>
+  <div class="livepill glass" id="livepill" onclick="push('feed')"><span class="pulse-dot"></span><span><b id="liveN">24</b> <span data-i="live">việc đang mở · xem quanh đây</span></span><span style="color:var(--pink);font-weight:800">›</span></div>
+  <button class="tam-orb" id="tamOrb" onclick="hideNudge();push('tam')">💗</button>
+  <div class="tam-nudge glass" id="tamNudge" onclick="hideNudge();goRoot('twin')"></div>
+
+  <!-- NAV -->
+  <div class="nav glass" id="nav">
+    <button class="nv on" data-nav="map" onclick="goRoot('map')"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.3-7-11a7 7 0 1 1 14 0c0 5.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg><span data-i="n_map">Bản đồ</span></button>
+    <button class="nv" data-nav="jobs" onclick="goRoot('jobs')"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/></svg><span data-i="n_jobs">Việc của tôi</span></button>
+    <div class="fab-slot"><button class="fab" onclick="openCreate()">＋</button></div>
+    <button class="nv" data-nav="twin" onclick="goRoot('twin')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.2-3.4 3.8-5 7-5s5.8 1.6 7 5"/></svg><span data-i="n_twin">Twin</span><span class="badge" id="twinBadge">2</span></button>
+    <button class="nv" data-nav="me" onclick="goRoot('me')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i="n_me">PlumpLife</span></button>
+  </div>
+
+  <!-- SPLASH -->
+  <div id="splash">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="chip" style="align-self:flex-start">🍑 Demo V2 · bản đồ vô tận — kéo hoài không hết, ✨🎁 rơi khắp nơi</div>
+      <div class="logo">SUPER<i>PLUMP</i></div>
+      <div style="font-size:15px;line-height:1.6;color:#E6D3EC;max-width:300px">Thời gian của bạn. Giá của bạn. Cuộc sống của bạn.<br><span class="mut small">Chạm một chấm sáng để bắt đầu — không cần tài khoản.</span></div>
+      <button class="btn" onclick="enter()">Bước vào Sài Gòn mận</button>
+      <button class="btn ghost" onclick="enter();setTimeout(()=>openKyc(null),400)">Xác minh danh tính ngay</button>
+    </div>
+  </div>
+
+  <!-- ROOT: JOBS -->
+  <section class="view root" id="v-jobs">
+    <div class="vhead"><h2 data-i="t_jobs">Việc của tôi</h2><span class="sp"></span><span class="chip">⏱ auto-confirm bảo vệ bạn</span></div>
+    <div class="vbody">
+      <div class="tabs" id="jobTabs">
+        <button class="on" onclick="tabJobs(this,'active')" data-i="j_act">Đang chạy</button>
+        <button onclick="tabJobs(this,'drop')" data-i="j_drop">Tôi thả</button>
+        <button onclick="tabJobs(this,'twin')" data-i="j_twin">Twin làm</button>
+        <button onclick="tabJobs(this,'done')" data-i="j_done">Lịch sử</button>
+      </div>
+      <div id="jobsList" style="display:flex;flex-direction:column;gap:11px"></div>
+    </div>
+  </section>
+
+  <!-- ROOT: TWIN -->
+  <section class="view root" id="v-twin">
+    <div class="vhead"><h2 data-i="t_twin">Bản thể số</h2><span class="sp"></span><span class="chip gold">Mận Bạc: tối đa 1 twin</span></div>
+    <div class="vbody">
+      <div class="card glass">
+        <div class="h-row">
+          <div class="avatar aura">M</div>
+          <div style="flex:1"><div style="font-weight:800;font-size:15px">Mận Máy <span class="small mut" style="font-weight:500">· Bản thể số của Bạn ✓</span></div>
+          <div class="h-row" style="gap:6px;margin-top:5px;flex-wrap:wrap" id="twinChips"><span class="chip gold">🥈 Qualify · Dịch A–V</span><span class="chip">Chế độ: Giám sát</span></div></div>
+        </div>
+        <div class="kv"><span>⚡ Năng lượng Mận</span><b id="energyLbl">36 / 50</b></div>
+        <div class="bar"><i id="energyBar" style="width:72%"></i></div>
+        <button class="chip" style="align-self:flex-start" onclick="feedTwin()">🍑 Cho twin ăn (−20k Coin → +10⚡)</button>
+        <div class="kv"><span>Twin kiếm tuần này</span><b class="money m">+430.000đ</b></div>
+        <div class="kv"><span>Thang niềm tin</span><b>Còn 3 việc tốt → Bán tự động</b></div>
+        <div class="bar pink"><i style="width:70%"></i></div>
+      </div>
+      <div class="sect" data-i="t_draft">Chờ bạn duyệt · khách đang đợi</div>
+      <div id="draftList" style="display:flex;flex-direction:column;gap:11px"></div>
+      <button class="btn ghost" onclick="openQualify()">🎓 Thi Qualify hạng mục mới</button>
+    </div>
+  </section>
+
+  <!-- ROOT: ME -->
+  <section class="view root" id="v-me">
+    <div class="vhead"><h2>PlumpLife</h2><span class="sp"></span><button class="chip" onclick="openSheet('langSheet')">🌐 <span id="langLbl">VI</span></button></div>
+    <div class="vbody">
+      <div class="card glass">
+        <div class="h-row">
+          <div class="ring">
+            <svg width="74" height="74"><circle cx="37" cy="37" r="33" stroke="rgba(255,255,255,.1)" stroke-width="5" fill="none"/><circle cx="37" cy="37" r="33" stroke="url(#gr)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="78"/><defs><linearGradient id="gr"><stop offset="0" stop-color="#FF5FA8"/><stop offset="1" stop-color="#F3B94D"/></linearGradient></defs></svg>
+            <div class="avatar" id="meAva">B</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:16px">Bạn <span class="chip gold" style="margin-left:4px">🍑 Mận Bạc</span></div>
+            <div class="small mut" style="margin-top:4px">PlumpRank <b style="color:var(--txt)" id="rankLbl">1.284</b> · còn 340 tới <b style="color:var(--gold)">Mận Vàng</b></div>
+            <div class="stars" style="margin-top:3px">★★★★★ <span class="small mut">4.9 · 41 đánh giá</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hub">
+        <button onclick="push('level')"><i>🏅</i>Cấp bậc</button>
+        <button onclick="push('avatar')"><i>🧍</i>Mận nhân</button>
+        <button onclick="push('inbox')"><i>💬</i>Tin nhắn</button>
+        <button onclick="push('room')"><i>🏠</i>Tổ Mận</button>
+        <button onclick="push('shop')"><i>🛍️</i>Shop</button>
+        <button onclick="push('store')"><i>🎒</i>Store</button>
+        <button onclick="push('wallet')"><i>👛</i>Wallet</button>
+        <button onclick="push('board')"><i>🏆</i>Xếp hạng</button>
+      </div>
+      <div class="h-row" style="align-items:stretch">
+        <div class="card glass" style="flex:1;gap:6px"><div class="sect" data-i="me_drop">Khi thả việc</div>
+          <div class="kv"><span>Đã thả</span><b>23</b></div><div class="kv"><span>Xác nhận đúng hạn</span><b>96%</b></div><div class="kv"><span>Tỉ lệ hủy</span><b>4%</b></div></div>
+        <div class="card glass" style="flex:1;gap:6px"><div class="sect" data-i="me_pick">Khi nhận việc</div>
+          <div class="kv"><span>Hoàn thành</span><b id="doneN">41</b></div><div class="kv"><span>Đúng hẹn</span><b>98%</b></div><div class="kv"><span>Tranh chấp</span><b>0</b></div></div>
+      </div>
+      <div class="small mut" style="text-align:center;margin-top:-4px">Minh bạch hai chiều — sổ công khai của cả hai vai, không xóa được</div>
+      <div class="h-row"><div class="sect">🧱 Tường nhà — khoảnh khắc mận</div><span class="sp"></span><span class="chip" id="connChip">🤝 0 kết nối</span></div>
+      <div id="myWall" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div class="card glass">
+        <div class="h-row"><div class="sect">Ví nhanh</div><span class="sp"></span><button class="chip" onclick="push('wallet')">Mở ví đầy đủ ›</button></div>
+        <div class="h-row">
+          <div style="flex:1"><div class="small mut">◈ Nara</div><div class="cur n" style="font-size:22px" id="wNaraMini">—</div></div>
+          <div style="flex:1"><div class="small mut">🍑 Plump</div><div class="cur p" style="font-size:22px" id="wPlumpMini">—</div></div>
+          <div style="flex:1"><div class="small mut">🔒 Két</div><div class="money g" style="font-size:22px" id="wHeldMini">—</div></div>
+        </div>
+        <div class="sect" style="margin-top:4px" data-i="me_ledger">Sổ bút toán — không xóa được</div>
+        <div id="ledger" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div class="card glass"><div class="sect" data-i="me_tl">Hành trình gần đây</div>
+        <div class="tl"><div class="dotln"><div class="d"></div><div class="l"></div></div><div style="padding-bottom:12px"><b style="font-size:13.5px">Hoàn thành "Dịch tài liệu Q.1"</b><div class="small mut">★5 · "Nhanh và chuẩn giọng" · +12 rank</div></div></div>
+        <div class="tl"><div class="dotln"><div class="d" style="background:var(--gold)"></div><div class="l"></div></div><div style="padding-bottom:12px"><b style="font-size:13.5px">Twin đậu Qualify Bạc — Dịch A–V</b><div class="small mut">AI giám khảo 8.6/10 · người duyệt ✓</div></div></div>
+        <div class="tl"><div class="dotln"><div class="d" style="background:var(--mint)"></div></div><div><b style="font-size:13.5px">Lên hạng Mận Bạc 🍑</b><div class="small mut">Mở khóa: tạo bản thể số đầu tiên</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUB: NEGOTIATE -->
+  <section class="view sub" id="v-nego">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 data-i="t_nego">Thương lượng</h2><span class="sp"></span><span class="chip">Vòng <b id="negoRound">1</b></span></div>
+    <div class="vbody">
+      <div class="card glass">
+        <div class="h-row"><div class="avatar" id="negoAva">L</div>
+          <div style="flex:1"><div style="font-weight:700" id="negoTitle">—</div><div class="small mut" id="negoWho">—</div></div>
+        </div>
+        <div class="kv"><span id="negoTheirLbl">Giá họ đề nghị</span><b class="money" id="negoTheir">—</b></div>
+        <div class="kv"><span data-i="ng_mine">Giá của bạn</span><b class="money p" style="font-size:22px" id="negoMine">—</b></div>
+        <div class="small mut">Nền tảng đứng ngoài cuộc mặc cả — không trần, không sàn. Mỗi lời ngỏ là một điểm dữ liệu giá của thị trường.</div>
+      </div>
+      <div class="pricechips">
+        <button class="chip" onclick="bump(-10000)">−10k</button>
+        <button class="chip" onclick="bump(-5000)">−5k</button>
+        <button class="chip" onclick="bump(5000)">+5k</button>
+        <button class="chip" onclick="bump(10000)">+10k</button>
+        <button class="chip" onclick="matchTheir()">= Theo giá họ</button>
+      </div>
+      <button class="btn gold" id="lockBtn" onclick="lockDeal()">🔒 Chốt &amp; khóa tiền an toàn</button>
+      <div class="card glass" style="gap:8px">
+        <div class="sect" data-i="ng_chat">Trao đổi</div>
+        <div class="msgs" id="negoMsgs"></div>
+        <div class="h-row">
+          <input id="negoInput" placeholder="Nhắn đôi câu…" style="flex:1;padding:12px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--rim);color:var(--txt);outline:none">
+          <button class="chip on" onclick="sendMsg('negoMsgs','negoInput')">Gửi</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUB: DEAL -->
+  <section class="view sub" id="v-deal">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 id="dealTitle">Deal</h2><span class="sp"></span><span class="chip on" id="dealState">—</span></div>
+    <div class="vbody">
+      <div class="card glass">
+        <div class="stepper" id="dealSteps"></div>
+        <div class="stlbl"><span>Chốt</span><span>Khóa tiền</span><span>Đang làm</span><span>Bằng chứng</span><span>Hoàn tất</span></div>
+      </div>
+      <div class="card glass">
+        <div class="kv"><span id="escrowLbl">🔒 Đang giữ an toàn</span><b class="money g" id="dealEscrow">—</b></div>
+        <div class="small mut">Phí 5% mỗi bên, minh bạch · tiền chỉ trao khi việc được xác nhận</div>
+      </div>
+      <div class="card glass">
+        <div class="sect">Vị trí chính xác — đã mở cho hai bên 🔓</div>
+        <div style="font-weight:700;font-size:14.5px" id="dealAddr">—</div>
+        <div class="small mut">Trước khi chốt, người ngoài chỉ thấy vị trí mờ ~300m</div>
+      </div>
+      <div class="card glass" id="proofBox" style="display:none">
+        <div class="sect" data-i="d_proof">Bằng chứng đã nộp</div>
+        <div class="h-row"><div class="photo">📸</div><div class="photo">📸</div></div>
+        <div class="small mut">Đối phương xác nhận, hoặc hệ thống tự xác nhận sau <b id="cdown">11:59:42</b></div>
+      </div>
+      <button class="btn" id="dealCta" onclick="dealNext()">—</button>
+      <div class="h-row">
+        <button class="btn ghost" style="flex:1" onclick="openSheet('chatSheet')" data-i="d_chat">Chat</button>
+        <button class="btn ghost" style="flex:1" onclick="openSheet('dispSheet')" data-i="d_disp">Tranh chấp</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUB: CREATE -->
+  <section class="view sub" id="v-create">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 data-i="t_create">Thả Plump</h2></div>
+    <div class="vbody">
+      <div class="seg"><button class="on" onclick="segType(this,'local')">📍 <span data-i="f_local2">Việc tại chỗ</span></button><button onclick="segType(this,'digital')">💻 <span data-i="f_dig2">Việc số</span></button></div>
+      <div class="field"><label data-i="c_what">Việc cần làm</label><input id="cTitle" placeholder="VD: Dọn kho 2 tiếng, Quận 7"></div>
+      <div class="field"><label data-i="c_desc">Mô tả ngắn</label><textarea id="cDesc" rows="2" placeholder="Đôi lời để người nhận hiểu việc…"></textarea></div>
+      <div class="field"><label data-i="c_time">Khung giờ</label>
+        <div class="pricechips" id="timeChips"><button class="chip on" onclick="pickTime(this)">Chiều nay</button><button class="chip" onclick="pickTime(this)">Tối nay</button><button class="chip" onclick="pickTime(this)">Cuối tuần</button><button class="chip" onclick="pickTime(this)">Ngày mai</button></div>
+      </div>
+      <div class="field"><label data-i="c_price">Giá bạn thấy xứng đáng</label>
+        <input id="cPrice" inputmode="numeric" value="100000">
+        <div class="notice">💡 Tham khảo thị trường: việc tương tự khu này gần đây <b>90k–140k</b> (12 giao dịch). Chỉ để bạn biết — giá là của bạn.</div>
+      </div>
+      <div class="card glass-lt" style="padding:13px"><div class="kv"><span>📍 Ghim vị trí</span><b>Q.7 · TP.HCM</b></div>
+        <div class="small mut">Người khác chỉ thấy mờ ~300m cho tới khi hai bên chốt deal</div></div>
+      <button class="btn" onclick="dropIt()" data-i="c_go">Thả lên bản đồ ✦</button>
+    </div>
+  </section>
+
+  <!-- SUB: APPROVE -->
+  <section class="view sub" id="v-approve">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 data-i="t_appr">Duyệt bài của twin</h2><span class="sp"></span><span class="chip">⏱ 2h41'</span></div>
+    <div class="vbody">
+      <div class="card glass-lt"><div class="sect">Đề bài của khách</div>
+        <div style="font-size:13.5px;line-height:1.55">Dịch email chào hàng 200 chữ sang tiếng Anh, giọng trang trọng, gửi đối tác Singapore.</div></div>
+      <div class="card glass" style="border-color:rgba(243,185,77,.4)">
+        <div class="sect" style="color:var(--gold)">Bài twin đã làm · draft</div>
+        <div style="font-size:13.5px;line-height:1.6;color:#EFE2F2">Dear Mr. Tan,<br><br>We sincerely appreciate the opportunity to introduce our latest collection… Our team is committed to delivering within 14 days, and we would be honored to arrange a call at your convenience.<br><br>Warm regards,</div>
+        <div class="small mut">Twin dùng giọng "trang trọng" bạn dạy ở lần sửa #12</div>
+      </div>
+      <button class="btn mint" onclick="approveDraft()">✓ Duyệt &amp; nộp cho khách</button>
+      <div class="h-row">
+        <button class="btn ghost" style="flex:1" onclick="toast('✍️ Sửa của bạn thành mẫu mới trong SoulFile');approveDraft()">Sửa rồi nộp</button>
+        <button class="btn ghost" style="flex:1" onclick="toast('↩️ Twin sẽ học lại từ nhận xét của bạn');back()">Dạy lại</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUB: TIỂU TÂM -->
+  <section class="view sub" id="v-tam">
+    <div class="vhead"><button class="back" onclick="back()">‹</button>
+      <div class="avatar" style="width:38px;height:38px;font-size:17px;background:linear-gradient(135deg,#FF5FA8,#F3B94D)">💗</div>
+      <div><h2 style="font-size:15px">Tiểu Tâm</h2><div class="small mut" style="font-size:10.5px">siêu thư ký · engine Claude Fable 5 · chỉ nói khi đáng nói</div></div>
+    </div>
+    <div class="vbody" style="gap:10px">
+      <div class="msgs" id="tamMsgs"></div>
+      <div class="pricechips">
+        <button class="chip" onclick="tamQuick('gia')">💡 Tư vấn giá</button>
+        <button class="chip" onclick="tamQuick('soan')">✍️ Soạn drop hộ</button>
+        <button class="chip" onclick="tamQuick('ngo')">📨 Lọc lời ngỏ</button>
+        <button class="chip" onclick="tamQuick('bao')">📊 Báo cáo tuần</button>
+      </div>
+      <div class="h-row"><input id="tamInput" placeholder="Nói với Tâm… (vd: soạn drop dọn kho 120k)" style="flex:1;padding:12px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--rim);color:var(--txt);outline:none">
+        <button class="chip on" onclick="tamSend()">Gửi</button></div>
+    </div>
+  </section>
+
+  <!-- SUB: FEED QUANH ĐÂY -->
+  <section class="view sub" id="v-feed">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>Quanh đây đang sống · Q.7</h2></div>
+    <div class="vbody" id="feedList"></div>
+  </section>
+
+  <!-- SUB: TƯỜNG NHÀ NGƯỜI KHÁC -->
+  <section class="view sub" id="v-wall">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 id="wallName">—</h2></div>
+    <div class="vbody">
+      <div class="card glass">
+        <div class="h-row"><div class="avatar" id="wallAva" style="width:54px;height:54px;font-size:19px">?</div>
+          <div style="flex:1"><div style="font-weight:800;font-size:15px" id="wallTitle">—</div>
+          <div class="small mut" id="wallSub">—</div></div><span class="chip gold" id="wallRank">—</span></div>
+        <div class="h-row" style="align-items:stretch;margin-top:4px">
+          <div class="card glass-lt" style="flex:1;gap:4px;padding:10px"><div class="sect">Khi thả</div><div class="kv"><span>Đã thả</span><b>17</b></div><div class="kv"><span>Đúng hạn</span><b>94%</b></div></div>
+          <div class="card glass-lt" style="flex:1;gap:4px;padding:10px"><div class="sect">Khi nhận</div><div class="kv"><span>Hoàn thành</span><b>52</b></div><div class="kv"><span>Quay lại</span><b>38%</b></div></div>
+        </div>
+      </div>
+      <div class="sect">Tường nhà — khoảnh khắc mận</div>
+      <div id="wallMoments" style="display:flex;flex-direction:column;gap:12px"></div>
+      <button class="btn ghost" onclick="wallMsg()">💬 Nhắn tin</button>
+      <div class="small mut" style="text-align:center">Không có DM lạnh — quen qua việc trước, kết nối mở sau deal đầu tiên 🤝</div>
+    </div>
+  </section>
+
+  <!-- SUB: SHOP -->
+  <section class="view sub" id="v-shop">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🛍️ Shop Mận</h2><span class="sp"></span>
+      <span class="chip"><span class="cur n">◈ <b id="shopNara">—</b></span></span><span class="chip"><span class="cur p">🍑 <b id="shopPlump">—</b></span></span></div>
+    <div class="vbody" id="shopList"></div>
+  </section>
+
+  <!-- SUB: TỔ MẬN (phòng + avatar ghép lớp) -->
+  <section class="view sub" id="v-room">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🏠 Tổ Mận</h2><span class="sp"></span>
+      <button class="chip on" onclick="openSheet('roomEditSheet')">✦ Trang trí</button></div>
+    <div class="vbody" id="roomBody"></div>
+  </section>
+
+  <!-- SUB: MẬN NHÂN — phòng thay trang bị & trang phục -->
+  <section class="view sub" id="v-avatar">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🧍 Mận Nhân</h2><span class="sp"></span>
+      <span class="chip" id="avLv">Lv1</span></div>
+    <div class="vbody" id="avatarBody"></div>
+  </section>
+
+  <!-- SUB: CẤP BẬC PLUMPER -->
+  <section class="view sub" id="v-level">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🏅 Cấp bậc</h2><span class="sp"></span>
+      <span class="chip">uy tín kiếm bằng lao động</span></div>
+    <div class="vbody" id="levelBody"></div>
+  </section>
+
+  <!-- SUB: TIN NHẮN -->
+  <section class="view sub" id="v-inbox">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>💬 Tin nhắn</h2><span class="sp"></span>
+      <button class="chip on" onclick="push('newchat')">✏️ Tạo / Tham gia</button></div>
+    <div class="vbody chatlist" id="inboxList"></div>
+  </section>
+  <section class="view sub" id="v-chat">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2 id="chatTitle">Chat</h2><span class="sp"></span>
+      <span class="chip" id="chatCtx">·</span></div>
+    <div class="vbody chatwrap">
+      <div class="chatscroll" id="chatScroll"></div>
+      <div class="typingline" id="typingLine"></div>
+      <div id="replyBar" style="display:none" class="replybar"><span id="replyPrev" style="flex:1"></span>
+        <button class="chip" onclick="clearReply()">✕</button></div>
+      <div class="channelbar" id="channelBar" style="display:none">🔒 <b>Chỉ admin đăng</b> · <span id="chSubs"></span><span class="sp"></span><span class="chip on">🔔 Đang theo dõi</span></div>
+      <div class="msgrow" id="msgRow">
+        <button class="send" style="background:rgba(255,255,255,.1);font-size:19px" onclick="openSheet('attachSheet')">＋</button>
+        <input id="msgInput" placeholder="Nhắn gì đó…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUB: TẠO / THAM GIA (màn con của Tin nhắn — chuẩn Telegram) -->
+  <section class="view sub" id="v-newchat">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>✏️ Tạo / Tham gia</h2><span class="sp"></span></div>
+    <div class="vbody" style="display:flex;flex-direction:column;gap:10px">
+      <div class="roomcard"><b>👥 Tạo nhóm</b><div class="small mut">Chỉ thêm được người từng làm việc chung</div>
+        <div style="display:flex;gap:8px;margin-top:7px"><input id="ncGroupName" placeholder="Tên nhóm…" style="flex:1;background:rgba(255,255,255,.07);border:1px solid var(--rim);border-radius:10px;padding:10px 12px;color:inherit">
+        <button class="chip on" onclick="createGroupUI()">Tạo</button></div></div>
+      <div class="roomcard"><b>📣 Tạo channel</b><div class="small mut">Kênh phát: chỉ admin đăng, ai cũng theo dõi được</div>
+        <button class="chip on" style="margin-top:7px" onclick="createChannelUI()">Tạo channel của tôi</button></div>
+      <div class="roomcard"><b>🔗 Tham gia bằng mã mời</b>
+        <div style="display:flex;gap:8px;margin-top:7px"><input id="ncCode" placeholder="Mã mời 8 ký tự…" style="flex:1;background:rgba(255,255,255,.07);border:1px solid var(--rim);border-radius:10px;padding:10px 12px;color:inherit">
+        <button class="chip on" onclick="joinByCodeUI()">Vào</button></div></div>
+      <div class="small mut" style="text-align:center">🔒 Nhóm giữ luật "quen qua việc" · Channel công khai nằm trong danh bạ 📣</div>
+    </div>
+  </section>
+
+  <!-- SUB: STORE -->
+  <section class="view sub" id="v-store">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🎒 Store — đồ của bạn</h2></div>
+    <div class="vbody" id="storeList"></div>
+  </section>
+
+  <!-- SUB: WALLET -->
+  <section class="view sub" id="v-wallet">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>👛 Wallet</h2></div>
+    <div class="vbody">
+      <div class="h-row" style="align-items:stretch">
+        <div class="card glass" style="flex:1;gap:5px"><div class="small mut">◈ Nara <span class="chip" style="padding:2px 8px;font-size:9px;margin-left:2px">nạp tiền</span></div>
+          <div class="cur n" style="font-size:26px" id="wNara">—</div>
+          <button class="chip on" onclick="openSheet('topupSheet')">＋ Nạp Nara</button></div>
+        <div class="card glass" style="flex:1;gap:5px"><div class="small mut">🍑 Plump <span class="chip" style="padding:2px 8px;font-size:9px;margin-left:2px">farm được</span></div>
+          <div class="cur p" style="font-size:26px" id="wPlump">—</div>
+          <div class="small mut">Kiếm từ nhiệm vụ bên dưới ↓</div></div>
+      </div>
+      <div class="card glass"><div class="kv"><span>🔒 Két escrow (Nara)</span><b class="money g" id="wHeld">—</b></div>
+        <div class="small mut">Nara dùng cho giao dịch &amp; escrow · Plump dùng cho Shop, nuôi Tiểu Tâm/twin, đổi ưu đãi</div></div>
+      <div class="sect">Nhiệm vụ kiếm Plump 🍑</div>
+      <div id="missionList" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="sect">Sổ bút toán — hai loại điểm, không xóa được</div>
+      <div class="card glass" id="ledger2" style="gap:8px"></div>
+    </div>
+  </section>
+
+  <!-- SUB: LEADERBOARD -->
+  <section class="view sub" id="v-board">
+    <div class="vhead"><button class="back" onclick="back()">‹</button><h2>🏆 Bảng xếp hạng Plump</h2></div>
+    <div class="vbody">
+      <div class="tabs" id="boardTabs">
+        <button class="on" onclick="tabBoard(this,'day')">Ngày</button>
+        <button onclick="tabBoard(this,'week')">Tuần</button>
+        <button onclick="tabBoard(this,'month')">Tháng</button>
+      </div>
+      <div class="notice" id="boardReward">—</div>
+      <div id="boardList" style="display:flex;flex-direction:column;gap:9px"></div>
+      <div class="small mut" style="text-align:center">Điểm = Plump farm được trong kỳ · chống cày ảo: chỉ tính deal SETTLED có đánh giá mở mù</div>
+    </div>
+  </section>
+
+  <!-- ===== SHEETS ===== -->
+  <div class="sheet-wrap" id="dropSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div class="h-row" id="dsChips" style="flex-wrap:wrap"></div>
+      <div style="font-size:19px;font-weight:800;line-height:1.3" id="dsTitle">—</div>
+      <div class="small mut" id="dsDesc">—</div>
+      <div class="card glass-lt" style="padding:14px">
+        <div class="kv"><span data-i="ds_price">Giá đề nghị</span><b class="money p" style="font-size:26px" id="dsPrice">—</b></div>
+        <div class="small" style="color:#FFC7E0">Giá do hai bên tự quyết — bạn có thể ngỏ giá khác</div>
+        <div class="kv"><span>Tham khảo khu này</span><b id="dsRef">—</b></div>
+      </div>
+      <div class="h-row" onclick="closeSheet('dropSheet');openWall(cur)"><div class="avatar" id="dsAva">?</div>
+        <div style="flex:1"><div style="font-weight:700" id="dsOwner">—</div><div class="small mut" id="dsOwnerSub">—</div></div>
+        <span class="chip gold" id="dsRank">—</span><span class="mut">›</span></div>
+      <div class="small mut" id="dsGeo">📍 —</div>
+      <button class="btn" id="dsCta" onclick="startNego()">Ngỏ lời nhận việc</button>
+      <button class="btn ghost" onclick="shareDrop()" data-i="ds_share">Chia sẻ liên kết</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="kycSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:19px;font-weight:800">Cánh cửa mở bằng tên thật 🚪</div>
+      <div class="small mut" style="line-height:1.6">Xem thì tự do tuyệt đối. Nhưng để <b style="color:var(--txt)">thả việc, nhận việc, hay thả bản thể số</b> — SuperPlump cần biết bạn thật sự là ai.</div>
+      <div class="h-row"><div class="photo add">🪪</div><div class="photo add">🤳</div><div style="flex:1" class="small mut">CCCD hai mặt + selfie xác thực</div></div>
+      <button class="btn gold" id="kycBtn" onclick="doKyc()">Xác minh nhanh (demo · 2 giây)</button>
+      <button class="btn ghost" onclick="back()">Để sau — xem tiếp</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="reviewSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:19px;font-weight:800">Đánh giá — viết trong mù ✍️</div>
+      <div class="notice pink">Đối phương không thấy lời của bạn trước khi họ gửi. Đã gửi là không sửa, không xóa — mãi mãi.</div>
+      <div style="font-size:34px;letter-spacing:10px;text-align:center;color:var(--gold)" id="revStars"></div>
+      <textarea rows="2" placeholder="Đôi lời chân thật…" style="width:100%;padding:13px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--rim);color:var(--txt);outline:none"></textarea>
+      <div class="kv"><span>Trạng thái đối phương</span><b>Đã gửi ✓ · ẩn tới khi bạn gửi</b></div>
+      <button class="btn" onclick="sendReview()">Gửi đánh giá</button>
+    </div></div>
+
+  <!-- SHEETS: Tổ Mận / Gửi kèm / Info Plumper (chuẩn sheet-wrap gốc) -->
+  <div class="sheet-wrap" id="roomEditSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet">
+      <div class="sheethead"><b>✦ Trang trí Tổ Mận</b><button class="x" onclick="closeSheet('roomEditSheet')">✕</button></div>
+      <div id="roomEditBody" style="max-height:58vh;overflow:auto"></div>
+    </div></div>
+  <div class="sheet-wrap" id="giftPickerSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet">
+      <div class="sheethead"><b id="gpTitle">Tặng quà</b><button class="x" onclick="closeSheet('giftPickerSheet')">✕</button></div>
+      <div id="gpBody" style="max-height:56vh;overflow:auto"></div>
+    </div></div>
+  <div class="sheet-wrap" id="attachSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet">
+      <div class="sheethead"><b>＋ Gửi kèm</b><button class="x" onclick="closeSheet('attachSheet')">✕</button></div>
+      <button class="btn ghost" onclick="sendImage()">📷 Gửi ảnh</button>
+      <button class="btn ghost" onclick="sendLocation()">📍 Gửi vị trí hiện tại</button>
+      <button class="btn ghost" onclick="sendTip()">🧧 Gửi 🍑200 cảm ơn</button>
+      <button class="btn ghost" onclick="openGiftPicker('nara')">◈ Tặng Nara</button>
+      <button class="btn ghost" onclick="openGiftPicker('item')">🎁 Tặng vật phẩm</button>
+    </div></div>
+  <div class="sheet-wrap" id="plumperSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet">
+      <div class="sheethead"><b id="plumpName">Plumper</b><button class="x" onclick="closeSheet('plumperSheet')">✕</button></div>
+      <div id="plumpBody" style="max-height:62vh;overflow:auto"></div>
+    </div></div>
+  <div class="sheet-wrap" id="notiSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">Thông báo</div>
+      <div id="notiList" style="display:flex;flex-direction:column;gap:9px"></div>
+    </div></div>
+
+  <div class="sheet-wrap" id="searchSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet" style="min-height:60%"><div class="grab" onclick="back()"></div>
+      <input id="searchInput" placeholder="🔍 Gõ để tìm: dịch, dọn, excel, twin…" oninput="renderSearch()" style="width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid var(--rim);color:var(--txt);outline:none;font-size:15px">
+      <div id="searchList" style="display:flex;flex-direction:column;gap:9px"></div>
+    </div></div>
+
+  <div class="sheet-wrap" id="offerSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">Lời ngỏ cho "Dọn kho 2 tiếng — Q.7"</div>
+      <div class="small mut">Bạn đề 110.000đ · 2 Plumper đã ngỏ giá</div>
+      <div class="item glass"><div class="avatar">M</div>
+        <div style="flex:1"><b>Minh</b> <span class="chip gold" style="margin-left:4px">Mận Vàng ★5.0</span><div class="small mut">"Mình ở gần, 30' nữa qua được"</div></div>
+        <div style="text-align:right"><div class="money p">95.000đ</div><button class="chip on" onclick="acceptOffer(95000,'Minh')">Chấp nhận</button></div></div>
+      <div class="item glass"><div class="avatar">T</div>
+        <div style="flex:1"><b>Tú</b> <span class="chip" style="margin-left:4px">Mận Đồng ★4.5</span><div class="small mut">"Đúng giá bạn đề luôn nhé"</div></div>
+        <div style="text-align:right"><div class="money p">110.000đ</div><button class="chip on" onclick="acceptOffer(110000,'Tú')">Chấp nhận</button></div></div>
+      <button class="btn ghost" onclick="counterOffer()">↔ Trả giá lại với Minh</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="dispSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">Mở tranh chấp ⚖️</div>
+      <div class="notice">Tiền lập tức đóng băng. Trọng tài đọc toàn bộ bằng chứng + event log của deal — thứ không ai sửa được.</div>
+      <div class="pricechips"><button class="chip on" onclick="pickTime(this)">Không đúng mô tả</button><button class="chip" onclick="pickTime(this)">Không hoàn thành</button><button class="chip" onclick="pickTime(this)">Khác</button></div>
+      <textarea rows="2" placeholder="Trình bày của bạn…" style="width:100%;padding:13px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--rim);color:var(--txt);outline:none"></textarea>
+      <button class="btn" style="background:linear-gradient(135deg,#FF7A6B,#E0492E)" onclick="openDispute()">Gửi hồ sơ tranh chấp</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="chatSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">Chat trong deal</div>
+      <div class="msgs" id="dealMsgs"><div class="mL">Mình đang trên đường tới nhé</div><div class="mR">Ok bạn, kho ở tầng trệt 👌</div></div>
+      <div class="h-row"><input id="dealInput" placeholder="Nhắn…" style="flex:1;padding:12px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--rim);color:var(--txt);outline:none"><button class="chip on" onclick="sendMsg('dealMsgs','dealInput')">Gửi</button></div>
+    </div></div>
+
+  <div class="sheet-wrap" id="topupSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">Nạp Nara ◈</div>
+      <div class="small mut">Nara = điểm nạp tiền, dùng cho giao dịch &amp; escrow. Plump 🍑 thì không mua được — chỉ farm bằng lao động &amp; việc tốt.</div>
+      <div class="pricechips" id="topChips">
+        <button class="chip" onclick="pickAmt(this,100000)">100k</button>
+        <button class="chip on" onclick="pickAmt(this,500000)">500k</button>
+        <button class="chip" onclick="pickAmt(this,1000000)">1.000k</button>
+      </div>
+      <div class="card glass-lt" style="align-items:center"><div class="photo" style="width:110px;height:110px">▦</div><div class="small mut">Quét QR chuyển khoản · nội dung: <b style="color:var(--txt)">PLUMP-8231</b></div></div>
+      <div class="small mut">V1: đối soát tự động qua webhook ngân hàng · rail rút tiền cắm sau qua đối tác có phép</div>
+      <button class="btn gold" id="topBtn" onclick="doTopup()">Tôi đã chuyển khoản</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="qualifySheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">🎓 Thi Qualify · Viết content</div>
+      <div class="notice">Thi chạy trên máy chủ, đề sinh biến thể — bạn không can thiệp được. SoulFile dự thi sẽ khóa version nếu đậu.</div>
+      <div class="card glass-lt" style="gap:8px">
+        <div class="kv"><span>Bài 1 · Caption bán hàng</span><b id="q1">—</b></div><div class="bar pink"><i id="qb1" style="width:0%"></i></div>
+        <div class="kv"><span>Bài 2 · Mô tả sản phẩm</span><b id="q2">—</b></div><div class="bar pink"><i id="qb2" style="width:0%"></i></div>
+        <div class="kv"><span>Bài 3 · Bài SEO 300 chữ</span><b id="q3">—</b></div><div class="bar pink"><i id="qb3" style="width:0%"></i></div>
+      </div>
+      <div class="card glass-lt" id="qScores" style="display:none;gap:6px">
+        <div class="kv"><span>Kiểm tra máy</span><b>Đạt ✓</b></div>
+        <div class="kv"><span>Giám khảo AI (rubric)</span><b>8.9 / 10</b></div>
+        <div class="kv"><span>Người duyệt</span><b>✓</b></div>
+      </div>
+      <button class="btn gold" id="qBtn" onclick="runQualify()">Cho twin vào phòng thi</button>
+    </div></div>
+
+  <div class="sheet-wrap" id="langSheet"><div class="scrim" onclick="back()"></div>
+    <div class="sheet"><div class="grab" onclick="back()"></div>
+      <div style="font-size:18px;font-weight:800">🌐 Ngôn ngữ</div>
+      <div class="small mut">i18n cắm sẵn từ M0 — mỗi ngôn ngữ là một cánh cửa cộng đồng. Demo dịch các nhãn chính.</div>
+      <button class="btn ghost" onclick="setLang('vi')">🇻🇳 Tiếng Việt</button>
+      <button class="btn ghost" onclick="setLang('en')">🇬🇧 English</button>
+      <button class="btn ghost" onclick="toast('中文 — vùng đất thứ ba, sắp mở 🀄')">🇨🇳 中文</button>
+      <button class="btn ghost" onclick="toast('हिन्दी — vùng đất thứ tư, sắp mở 🪔')">🇮🇳 हिन्दी</button>
+    </div></div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+const S={kyc:false,nara:100000,plump:100000,held:0,rank:1284,energy:36,done:41,filter:'all',
+  deal:null,dealStep:0,myOffer:0,round:1,drafts:2,negoMode:'exec',topAmt:500000,cd:43182,
+  theme:'default',inv:[],equip:{theme:'default',frame:false},settledOnce:false,approvedOnce:false,mClaimed:{},
+  lvl:{validDeals:11,distinctClients:9,avgRating:4.8,lowBlocked:3}};
+// công thức B1: score = validDeals × (avgRating/5) × sqrt(min(distinctClients,25))
+function calcScore(l){return +(l.validDeals*(l.avgRating/5)*Math.sqrt(Math.min(l.distinctClients,25))).toFixed(2);}
+const TIERS=[1,4,10,26,60];
+function levelOf(sc){for(let i=TIERS.length-1;i>=0;i--)if(sc>=TIERS[i])return i+1;return 1;}
+const fmt=n=>n.toLocaleString('vi-VN')+'đ';
+const fmtN=n=>n.toLocaleString('vi-VN');
+const el=id=>document.getElementById(id);
+
+/* ============ I18N ============ */
+const I18N={
+ vi:{search:'Tìm quanh Sài Gòn…',f_all:'✦ Tất cả',f_local:'📍 Việc tại chỗ',f_dig:'💻 Việc số',f_twin:'🤖 Bản thể số',
+  live:'việc đang mở · dòng giá trị đang chảy',n_map:'Bản đồ',n_jobs:'Việc của tôi',n_twin:'Twin',n_me:'PlumpLife',
+  t_jobs:'Việc của tôi',j_act:'Đang chạy',j_drop:'Tôi thả',j_twin:'Twin làm',j_done:'Lịch sử',
+  t_twin:'Bản thể số',t_draft:'Chờ bạn duyệt · khách đang đợi',me_drop:'Khi thả việc',me_pick:'Khi nhận việc',
+  me_wallet:'Ví Plump Coin',w_avail:'Khả dụng',w_held:'Đang giữ',me_ledger:'Sổ bút toán — không xóa được',me_tl:'Hành trình gần đây',
+  t_nego:'Thương lượng',ng_mine:'Giá của bạn',ng_chat:'Trao đổi',d_proof:'Bằng chứng đã nộp',d_chat:'Chat',d_disp:'Tranh chấp',
+  t_create:'Thả Plump',f_local2:'Việc tại chỗ',f_dig2:'Việc số',c_what:'Việc cần làm',c_desc:'Mô tả ngắn',c_time:'Khung giờ',
+  c_price:'Giá bạn thấy xứng đáng',c_go:'Thả lên bản đồ ✦',t_appr:'Duyệt bài của twin',ds_price:'Giá đề nghị',ds_share:'Chia sẻ liên kết'},
+ en:{search:'Search around Saigon…',f_all:'✦ All',f_local:'📍 Local jobs',f_dig:'💻 Digital jobs',f_twin:'🤖 AI twins',
+  live:'open jobs · value is flowing',n_map:'Map',n_jobs:'My jobs',n_twin:'Twin',n_me:'PlumpLife',
+  t_jobs:'My jobs',j_act:'Active',j_drop:'I dropped',j_twin:'Twin work',j_done:'History',
+  t_twin:'AI Twin',t_draft:'Awaiting your review',me_drop:'As dropper',me_pick:'As worker',
+  me_wallet:'Plump Coin wallet',w_avail:'Available',w_held:'Held',me_ledger:'Ledger — immutable',me_tl:'Recent journey',
+  t_nego:'Negotiate',ng_mine:'Your price',ng_chat:'Messages',d_proof:'Proof submitted',d_chat:'Chat',d_disp:'Dispute',
+  t_create:'Drop a Plump',f_local2:'Local',f_dig2:'Digital',c_what:'What needs doing',c_desc:'Short description',c_time:'Time window',
+  c_price:'The price you find fair',c_go:'Drop onto the map ✦',t_appr:'Review twin draft',ds_price:'Asking price',ds_share:'Share link'}};
+let LANG='vi';
+function setLang(l){LANG=l;el('langLbl').textContent=l.toUpperCase();
+  document.querySelectorAll('[data-i]').forEach(n=>{const k=n.dataset.i;if(I18N[l][k])n.textContent=I18N[l][k];});
+  back();toast(l==='vi'?'🇻🇳 Đã chuyển tiếng Việt':'🇬🇧 Switched to English (demo: main labels)');}
+
+/* ============ ROUTER — stack thật, back mọi nơi ============ */
+const ROOTS=['map','jobs','twin','me'];
+const R={stack:['map'],sheets:[]};
+function show(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('show'));
+  const isMap=v==='map', isRoot=ROOTS.includes(v);
+  el('hud').style.display=isMap?'flex':'none';
+  el('livepill').style.display=isMap?'flex':'none';
+  const _mp=el('mapModePill');if(_mp)_mp.style.display=isMap?'inline-flex':'none';
+  const _zc=el('zoomCtl');if(_zc)_zc.style.display=isMap?'flex':'none';
+  el('nav').classList.toggle('hide',!isRoot);
+  if(!isMap) el('v-'+v).classList.add('show');
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===(isRoot?v:R.stack[0])));
+  el('tamOrb').style.display=isMap?'flex':'none';
+  if(!isMap)hideNudge();
+  if(v==='jobs')renderJobs(curTab); if(v==='twin')renderDrafts();
+  if(v==='me'){renderLedger();renderWall();}
+  if(v==='feed')renderFeed(); if(v==='tam')initTam();
+  if(v==='shop')renderShop(); if(v==='store')renderStore();
+  if(v==='wallet'){renderLedger();renderMissions();}
+  if(v==='board')renderBoard();
+  if(v==='room'){renderRoom();}
+  if(v==='avatar')renderAvatarView();
+  if(v==='level')renderLevel();
+  if(v==='inbox')renderInbox(); if(v==='chat')renderChat();
+}
+function goRoot(v){R.sheets.slice().forEach(closeSheet);R.stack=[v];show(v);}
+function push(v){R.stack.push(v);show(v);}
+function back(){
+  if(R.sheets.length){closeSheet(R.sheets[R.sheets.length-1]);return;}
+  if(R.stack.length>1){R.stack.pop();show(R.stack[R.stack.length-1]);}
+  else goRoot('map');
+}
+function openSheet(id){el(id).classList.add('show');R.sheets.push(id);document.body.classList.add('sheetopen');
+  if(id==='notiSheet')renderNoti(); if(id==='roomEditSheet')renderRoomEdit(); if(id==='searchSheet')setTimeout(()=>{el('searchInput').value='';renderSearch();},50);}
+function closeSheet(id){el(id).classList.remove('show');R.sheets=R.sheets.filter(x=>x!==id);
+  if(!R.sheets.length)document.body.classList.remove('sheetopen');}
+
+/* ============ MOCK DROPS ============ */
+const drops=[
+ {id:1,x:.30,y:.34,kind:'local',twin:false,title:'Dọn kho 2 tiếng — Q.7',desc:'Kho nhỏ 20m², sắp xếp kệ và đóng 10 thùng. Có nước uống, nhà mát 😄',price:110000,ref:'90k–140k · 12 việc',owner:'Lan',rank:'Mận Bạc ★4.9',addr:'12 Nguyễn Thị Thập, Q.7',geo:'Q.7 · mờ ~300m'},
+ {id:2,x:.62,y:.26,kind:'digital',twin:false,title:'Dịch email 200 chữ A–V',desc:'Email chào hàng gửi đối tác Singapore, giọng trang trọng. Twin Qualify Dịch được nhận.',price:90000,ref:'70k–120k · 31 việc',owner:'Minh',rank:'Mận Vàng ★5.0',addr:'Việc số — làm từ xa',geo:'Việc số · không cần vị trí'},
+ {id:3,x:.47,y:.52,kind:'twin',twin:true,title:'Twin "Bút Mận" đang trực',desc:'Bản thể số của Hà ✓ · Viết content, caption, mô tả sản phẩm. Qualify Vàng · phản hồi <5 phút.',price:60000,ref:'giá/bài 500 chữ',owner:'Hà (chủ twin)',rank:'Twin ★4.8 · 210 việc',addr:'Việc số — twin làm ngay',geo:'Neo khu Bình Thạnh'},
+ {id:4,x:.72,y:.58,kind:'local',twin:false,title:'Đón bé + kèm bài 1 tiếng',desc:'Đón bé lớp 3 lúc 16:30 gần Thảo Điền, kèm bài tới 18h. Ưu tiên rank cao.',price:150000,ref:'120k–180k · 8 việc',owner:'Trang',rank:'Mận Bạc ★4.7',addr:'Thảo Điền, Thủ Đức',geo:'Thủ Đức · mờ ~300m'},
+ {id:5,x:.24,y:.66,kind:'local',twin:false,title:'Sửa xe máy không nổ',desc:'Xe Wave để 2 tháng không nổ, cần người biết sửa qua xem. Đồ nghề có sẵn.',price:80000,ref:'60k–120k · 5 việc',owner:'Tú',rank:'Mận Đồng ★4.5',addr:'Bình Thạnh',geo:'Bình Thạnh · mờ ~300m'},
+ {id:6,x:.56,y:.72,kind:'digital',twin:false,title:'Làm sạch file Excel 800 dòng',desc:'Chuẩn hóa tên khách, tách cột địa chỉ, bỏ trùng. Gửi trước 22h.',price:120000,ref:'100k–160k · 9 việc',owner:'Phúc',rank:'Mận Bạc ★4.8',addr:'Việc số — làm từ xa',geo:'Việc số'},
+ {id:7,x:.38,y:.20,kind:'twin',twin:true,title:'Twin "Dịch Nhanh" đang trực',desc:'Bản thể số của Khoa ✓ · Dịch A–V/V–A · Qualify Bạc · rảnh 2 slot.',price:45000,ref:'giá/300 chữ',owner:'Khoa (chủ twin)',rank:'Twin ★4.9 · 96 việc',addr:'Việc số',geo:'Neo khu Q.1'},
+ {id:8,x:.80,y:.38,kind:'local',twin:false,title:'Chụp 20 ảnh món ăn quán',desc:'Quán mới cần bộ ảnh menu đăng app. Điện thoại xịn là được, 1 tiếng xong.',price:200000,ref:'150k–300k · 6 việc',owner:'Quán Mận Đỏ',rank:'Mận Bạc ★4.6',addr:'Q.1',geo:'Q.1 · mờ ~300m'}];
+let cur=null;
+
+/* ============ CANVAS ============ */
+const cv=el('map'),cx=cv.getContext('2d');
+let W,H,t=0,streams=[],ripples=[],parts=[];
+function resize(){const D=Math.min(devicePixelRatio||1,2),r=cv.parentNode.getBoundingClientRect();
+  W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';cx.setTransform(D,0,0,D,0,0);initCam();clampCam();}
+addEventListener('resize',resize);
+for(let i=0;i<26;i++)parts.push({x:Math.random(),y:Math.random(),s:Math.random()*1.4+.4,v:Math.random()*.00025+.0001});
+function blob(x,y,r,c){const g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,c);g.addColorStop(1,'transparent');cx.fillStyle=g;cx.fillRect(x-r,y-r,r*2,r*2);}
+const THEMES={
+ default:{bg:['#1B0A26','#160822','#0F0517'],b1:'rgba(255,95,168,.10)',b2:'rgba(140,60,200,.13)',b3:'rgba(243,185,77,.07)',b4:'rgba(255,95,168,.07)',
+  grid:'rgba(255,255,255,.028)',rA:'rgba(120,60,150,.30)',rB:'rgba(190,110,220,.16)',part:'rgba(255,220,240,.5)',
+  human:'#FF5FA8',bh:'rgba(255,95,168,.32)',twinRing:'#F3B94D',twinCore:'#FFD98A',bt:'rgba(243,185,77,.30)',
+  stH:'#FFE9A8',stT:'#FFB2D6',rip:'#FF5FA8'},
+ neo:{bg:['#051428','#020F1E','#01070F'],b1:'rgba(34,228,255,.11)',b2:'rgba(77,107,255,.15)',b3:'rgba(198,255,74,.06)',b4:'rgba(34,228,255,.07)',
+  grid:'rgba(120,220,255,.05)',rA:'rgba(40,140,210,.32)',rB:'rgba(130,225,255,.18)',part:'rgba(190,245,255,.6)',
+  human:'#22E4FF',bh:'rgba(34,228,255,.30)',twinRing:'#C6FF4A',twinCore:'#EAFF9E',bt:'rgba(198,255,74,.26)',
+  stH:'#EAFF9E',stT:'#7FD8FF',rip:'#22E4FF'},
+ cute:{bg:['#FFE9F2','#FFDFEC','#FFD3E4'],b1:'rgba(255,122,184,.20)',b2:'rgba(186,146,255,.17)',b3:'rgba(255,181,92,.16)',b4:'rgba(127,216,255,.15)',
+  grid:'rgba(140,70,105,.06)',rA:'rgba(255,160,205,.60)',rB:'rgba(255,255,255,.55)',part:'rgba(255,255,255,.85)',
+  human:'#FF4F9E',bh:'rgba(255,79,158,.26)',twinRing:'#FFA53C',twinCore:'#FFC97E',bt:'rgba(255,165,60,.26)',
+  stH:'#FFB55C',stT:'#FF9CC6',rip:'#FF4F9E'}};
+function setTheme(t){document.body.setAttribute('data-theme',(t==='cyber'||t==='candy')?t:'');S.theme=t;S.equip.theme=t;document.body.dataset.theme=t==='default'?'':t;
+  toast(t==='neo'?'🌌 Neon 2077 — Sài Gòn hóa cyber':t==='cute'?'🧁 Mận Bông — Sài Gòn hóa kẹo bông':'🍑 Về Đêm Mận nguyên bản');}
+/* ===== THẾ GIỚI MẬN — bản đồ ×10, camera kéo, kiến trúc/event/loot ===== */
+const WORLD=7.0; const WW=()=>W*WORLD*ZOOM, WH=()=>H*WORLD*ZOOM;
+let camX=0, camY=0, ZOOM=1, _camInit=false;
+const ZMIN=0.6, ZMAX=2.6;
+function clampCam(){                       // X: infinity wrap (cuộn tròn) · Y: kẹp biên
+ const w=WW();camX=((camX%w)+w)%w;           // modulo dương → qua biên là hiện lại đầu kia
+ camY=Math.max(0,Math.min(Math.max(0,WH()-H),camY));}
+function initCam(){if(_camInit||!W)return;camX=WW()*0.30;camY=WH()*0.22;_camInit=true;}
+function zoomAt(factor,ox,oy){                       // giữ điểm dưới ngón/chuột cố định khi zoom
+ const wx=(camX+ox)/WW(), wy=(camY+oy)/WH();
+ ZOOM=Math.max(ZMIN,Math.min(ZMAX,ZOOM*factor));
+ camX=wx*WW()-ox; camY=wy*WH()-oy; clampCam();}
+const LANDMARKS=[
+ {x:.16,y:.14,ic:'⛪',n:'Nhà thờ Đức Bà'},{x:.22,y:.20,ic:'🏛️',n:'Chợ Bến Thành'},
+ {x:.30,y:.12,ic:'🐢',n:'Hồ Con Rùa'},{x:.38,y:.24,ic:'🏢',n:'Bitexco'},
+ {x:.52,y:.18,ic:'🏙️',n:'Landmark 81',big:true},{x:.66,y:.10,ic:'🦁',n:'Thảo Cầm Viên'},
+ {x:.12,y:.40,ic:'🏯',n:'Chùa Vĩnh Nghiêm'},{x:.28,y:.44,ic:'🎭',n:'Nhà hát TP'},
+ {x:.44,y:.40,ic:'🚶',n:'Phố đi bộ Nguyễn Huệ'},{x:.60,y:.36,ic:'🌉',n:'Cầu Ánh Sao'},
+ {x:.76,y:.30,ic:'⛴️',n:'Bến Bạch Đằng'},{x:.86,y:.16,ic:'✈️',n:'Tân Sơn Nhất'},
+ {x:.18,y:.66,ic:'🌳',n:'CV Tao Đàn'},{x:.36,y:.72,ic:'🍜',n:'Phố ẩm thực Q.4'},
+ {x:.54,y:.66,ic:'🎡',n:'Khu vui chơi Q.7'},{x:.72,y:.60,ic:'🚤',n:'Chợ nổi mini'},
+ {x:.84,y:.74,ic:'🏟️',n:'SVĐ Phú Thọ'},{x:.62,y:.86,ic:'🌾',n:'Đồng cỏ Nhà Bè'}];
+const EVENTS=[
+ {x:.34,y:.30,ic:'🎪',n:'Hội chợ Mận cuối tuần',d:'Gian hàng đổi 🍑 lấy quà — T7 & CN',c:'#FF5FA8',r:44},
+ {x:.58,y:.50,ic:'🔥',n:'Giờ Vàng Q.7',d:'Kèo khu này ×2 Plump tới 21h!',c:'#F3B94D',r:56},
+ {x:.20,y:.56,ic:'👹',n:'Boss Mận Q.3',d:'Cả khu gom 50 kèo công ích để hạ Boss — thưởng ai cũng có',c:'#B69CFF',r:50},
+ {x:.78,y:.44,ic:'🎂',n:'Sinh nhật Khu Bờ Sông',d:'Kèo đầu tiên hôm nay +🍑500',c:'#7FD97F',r:40},
+ {x:.46,y:.82,ic:'🎏',n:'Lễ hội đèn nước',d:'Thả đèn ảo — mỗi đèn +1 điểm khu',c:'#5CE3FF',r:44}];
+let LOOT=[];
+function spawnLoot(n,fresh){for(let i=0;i<n;i++)LOOT.push({
+ x:.05+Math.random()*.9, y:.06+Math.random()*.88,
+ kind:Math.random()<.72?'nara':'bag', v:500+((Math.random()*6)|0)*500, born:t});}
+spawnLoot(16);
+const BLIND_POOL=['th_cute','frame','radar','food','aura','music? '];
+const RARITY_VI={common:'Thường',rare:'Hiếm',epic:'Sử Thi',legend:'Huyền Thoại'};
+function naraRarity(v){return v>=3000?'legend':v>=2000?'epic':v>=1000?'rare':'common';}
+function sparkle(card,rarity){const n=rarity==='legend'?18:rarity==='epic'?12:6;
+ for(let i=0;i<n;i++){const s=document.createElement('span');s.className='spark';
+  s.textContent=['✨','⭐','💫','🌟'][i%4];
+  const ang=Math.random()*6.28,dist=60+Math.random()*70;
+  s.style.setProperty('--dx',Math.cos(ang)*dist+'px');
+  s.style.setProperty('--dy',Math.sin(ang)*dist+'px');
+  s.style.left='50%';s.style.top='38%';card.appendChild(s);
+  setTimeout(()=>s.remove(),950);}}
+function openGift(kind,val,item){
+ const modal=el('giftModal'),box=el('giftBoxEl'),rew=el('giftRewardEl');
+ modal.classList.add('show');box.className='giftBox';box.textContent='🎁';rew.innerHTML='';
+ setTimeout(()=>{
+  box.classList.add('opened');
+  const card=modal.querySelector('.giftCard');
+  if(kind==='nara'){const rar=naraRarity(val);
+   box.textContent='💰';sparkle(card,rar);
+   rew.innerHTML='<div style="font-size:26px;font-weight:800;color:#F3B94D">+'+fmtN(val)+' ◈</div>'
+    +'<div class="rarBadge srv-'+rar+'" style="color:#fff">Túi '+RARITY_VI[rar]+'</div>'
+    +'<div class="small mut">Nara đã vào ví — tha hồ sắm đồ đẹp</div>';}
+  else{const g=GEAR_META[item.id]||[item.ic||'🎁',item.name,item.rarity||'common'];
+   const rar=g[2];box.textContent=g[0];sparkle(card,rar);
+   rew.innerHTML='<div style="font-size:20px;font-weight:800">'+g[1]+'</div>'
+    +'<div class="rarBadge srv-'+rar+'" style="color:#fff">'+RARITY_VI[rar]+'</div>'
+    +'<div class="giftItemInfo"><b>'+g[0]+' '+g[1]+'</b><br>'
+    +'<span class="mut">Loại: '+(item.slotVi||item.slot||'trang bị')+' · Độ hiếm: '+RARITY_VI[rar]+'</span><br>'
+    +(item.desc||'Trang bị cho Mận nhân của bạn — vào 🧍 Mận nhân để đeo.')+'</div>';}
+ },560);}
+function closeGift(){el('giftModal').classList.remove('show');}
+/* Loa chúc mừng toàn server — độ hoành tráng theo độ hiếm */
+const NAMES=['Bé Na','Chú Sáu','Cô Hoa','Long IT','Tí Còi','Út Mận','Minh','Lan','Bin','Hải','Thu','Duy'];
+function serverAnnounce(text,rarity){
+ const feed=el('serverFeed');const d=document.createElement('div');
+ d.className='srvToast srv-'+rarity;
+ const ic=rarity==='legend'?'👑':rarity==='epic'?'💜':rarity==='rare'?'💙':'✨';
+ d.innerHTML='<span style="font-size:16px">'+ic+'</span><span>'+text+'</span>';
+ feed.appendChild(d);
+ setTimeout(()=>d.remove(),rarity==='legend'?6600:4600);}
+function announceOwn(kind,val,item){
+ if(kind==='nara'){const r=naraRarity(val);
+  if(r==='common')return;                       // túi nhỏ khỏi loa cả server cho đỡ spam
+  serverAnnounce('Bạn vừa mở túi '+fmtN(val)+' Nara! '+(r==='legend'?'CẢ SÀI GÒN NGƯỠNG MỘ 👑':''),r);}
+ else{const g=GEAR_META[item.id]||['🎁',item.name,item.rarity||'common'];
+  serverAnnounce('Bạn mở được "'+g[1]+'" ('+RARITY_VI[g[2]]+')!',g[2]);}}
+// giả lập server nhộn nhịp: người khác cũng mở quà
+function fakeServerLife(){
+ const roll=Math.random();
+ let rar= roll<.62?'common':roll<.85?'rare':roll<.96?'epic':'legend';
+ const who=NAMES[(Math.random()*NAMES.length)|0];
+ if(rar==='common'){const v=(500+((Math.random()*3)|0)*500);
+  serverAnnounce('Plumper "'+who+'" mở túi '+fmtN(v)+' Nara','common');}
+ else{const items={rare:['🥤','Tay cà phê'],epic:['🤖','Skin Twin Hologram'],legend:['🌟','Aura Vàng 5★']};
+  const it=items[rar];
+  serverAnnounce('🎉 Plumper "'+who+'" mở được "'+it[1]+'" — '+RARITY_VI[rar]+(rar==='legend'?' 👑 hàng cực hiếm!':'!'),rar);}
+ setTimeout(fakeServerLife,5000+Math.random()*7000);}
+setTimeout(fakeServerLife,3500);
+function collectLoot(l){l.dead=true;
+ if(l.kind==='nara'){S.nara+=l.v;addLedger('✨ Nhặt Nara trên đường',l.v,'','n');
+  openGift('nara',l.v);announceOwn('nara',l.v);}
+ else{const pool=SHOP.filter(it=>!S.inv.includes(it.id));
+  if(pool.length){const it=pool[(Math.random()*pool.length)|0];S.inv.push(it.id);
+   openGift('item',null,it);announceOwn('item',null,it);}
+  else{S.nara+=2000;openGift('nara',2000);}}
+ setTimeout(()=>{spawnLoot(1);},15000);
+ LOOT=LOOT.filter(x=>!x.dead);}
+S.friendReq=S.friendReq||{};
+if(!drops.some(d=>d.mine))drops.push({id:99,x:.48,y:.52,kind:'local',twin:false,mine:true,
+ title:'Dọn ban công 1 tiếng — kèo CỦA BẠN',desc:'Kèo demo bạn vừa thả: ai nhận sẽ ngỏ giá vào đây.',
+ price:120000,ref:'bạn tự định giá',owner:'Bạn',rank:'🍑 Chủ kèo',addr:'Q.3',geo:'Q.3 · mờ ~300m'});
+
+function drawManWorld(T){
+ const bg=cx.createLinearGradient(0,0,0,WH());bg.addColorStop(0,T.bg[0]);bg.addColorStop(.55,T.bg[1]);bg.addColorStop(1,T.bg[2]);
+ cx.fillStyle=bg;cx.fillRect(0,0,WW(),WH());
+ for(let i=0;i<9;i++)blob(WW()*((i*.37)%1),WH()*((i*.53+.1)%1),WW()*.16,[T.b1,T.b2,T.b3,T.b4][i%4]);
+ cx.strokeStyle=T.grid;cx.lineWidth=1;
+ for(let i=1;i<7*WORLD;i++){cx.beginPath();cx.moveTo(WW()*i/(7*WORLD),0);cx.lineTo(WW()*i/(7*WORLD)+22,WH());cx.stroke();}
+ for(let i=1;i<10*WORLD;i++){cx.beginPath();cx.moveTo(0,WH()*i/(10*WORLD));cx.lineTo(WW(),WH()*i/(10*WORLD)-14);cx.stroke();}
+ cx.beginPath();cx.moveTo(WW()*.78,-20);cx.bezierCurveTo(WW()*.62,WH()*.18,WW()*.88,WH()*.38,WW()*.66,WH()*.55);
+ cx.bezierCurveTo(WW()*.48,WH()*.70,WW()*.72,WH()*.86,WW()*.60,WH()+20);
+ cx.lineCap='round';cx.strokeStyle=T.rA;cx.lineWidth=34;cx.stroke();cx.strokeStyle=T.rB;cx.lineWidth=12;cx.stroke();
+ for(let i=0;i<10;i++){const ly=.06+i*.09;cx.font='13px system-ui';cx.globalAlpha=.5+.3*Math.sin(t*2+i);
+  cx.fillText('🏮',WW()*(.70-.05*Math.sin(i)),WH()*ly);}cx.globalAlpha=1;}
+function drawRealWorld(){
+ cx.fillStyle='#EAE6DC';cx.fillRect(0,0,WW(),WH());
+ cx.fillStyle='#DED9CC';
+ const cols=7*WORLD|0,rows=10*WORLD|0;
+ for(let i=0;i<cols;i++)for(let j=0;j<rows;j++)cx.fillRect(WW()*i/cols+7,WH()*j/rows+7+(i%2?5:0),WW()/cols-14,WH()/rows-14);
+ cx.strokeStyle='#FFFFFF';cx.lineWidth=7;
+ for(let i=1;i<cols;i++){cx.beginPath();cx.moveTo(WW()*i/cols,0);cx.lineTo(WW()*i/cols+22,WH());cx.stroke();}
+ for(let i=1;i<rows;i++){cx.beginPath();cx.moveTo(0,WH()*i/rows);cx.lineTo(WW(),WH()*i/rows-14);cx.stroke();}
+ cx.strokeStyle='#F6C453';cx.lineWidth=12;
+ cx.beginPath();cx.moveTo(-10,WH()*.72);cx.lineTo(WW()+10,WH()*.52);cx.stroke();
+ cx.beginPath();cx.moveTo(WW()*.18,-10);cx.lineTo(WW()*.34,WH()+10);cx.stroke();
+ cx.fillStyle='#BFE3B4';
+ [[.14,.22],[.82,.86],[.30,.62],[.66,.14]].forEach(p=>{cx.beginPath();cx.ellipse(WW()*p[0],WH()*p[1],WW()*.05,WH()*.032,0,0,7);cx.fill();});
+ cx.beginPath();cx.moveTo(WW()*.78,-20);cx.bezierCurveTo(WW()*.62,WH()*.18,WW()*.88,WH()*.38,WW()*.66,WH()*.55);
+ cx.bezierCurveTo(WW()*.48,WH()*.70,WW()*.72,WH()*.86,WW()*.60,WH()+20);
+ cx.lineCap='round';cx.strokeStyle='#9FD0EC';cx.lineWidth=34;cx.stroke();
+ cx.fillStyle='#8C8778';cx.font='700 12px system-ui';
+ [['Q.1',.30,.20],['Q.3',.18,.42],['Q.4',.36,.62],['Q.5',.10,.30],['Q.7',.55,.72],
+  ['Bình Thạnh',.60,.14],['Phú Nhuận',.44,.10],['Thủ Đức',.86,.30],['Nhà Bè',.60,.90]]
+ .forEach(l=>cx.fillText(l[0],WW()*l[1],WH()*l[2]));
+ cx.fillStyle='#6FA8C8';cx.fillText('Sông Sài Gòn',WW()*.70,WH()*.47);}
+function drawWorldContent(T,real){
+ LANDMARKS.forEach(L=>{const x=L.x*WW(),y=L.y*WH();
+  cx.globalAlpha=.28;cx.fillStyle=real?'#F6C453':'#FF5FA8';
+  cx.beginPath();cx.arc(x,y,L.big?30:20,0,7);cx.fill();cx.globalAlpha=1;
+  cx.font=(L.big?30:22)+'px system-ui';cx.textAlign='center';cx.fillText(L.ic,x,y+7);
+  cx.font='10px system-ui';cx.fillStyle=real?'#6b665a':'rgba(255,255,255,.75)';
+  cx.fillText(L.n,x,y+(L.big?30:24));cx.textAlign='start';});
+ EVENTS.forEach(E=>{const x=E.x*WW(),y=E.y*WH(),pu=1+.16*Math.sin(t*2.4+x);
+  for(let k=0;k<2;k++){cx.globalAlpha=(.5-.2*k);cx.strokeStyle=E.c;cx.lineWidth=2.5;
+   cx.beginPath();cx.arc(x,y,(E.r+k*12)*pu,0,7);cx.stroke();}
+  cx.globalAlpha=1;cx.font='26px system-ui';cx.textAlign='center';cx.fillText(E.ic,x,y+8);
+  cx.font='700 10.5px system-ui';cx.fillStyle=E.c;cx.fillText(E.n,x,y+E.r+22);cx.textAlign='start';});
+ LOOT.forEach(l=>{const x=l.x*WW(),y=l.y*WH();
+  cx.globalAlpha=.6+.4*Math.sin(t*3+x);cx.font='17px system-ui';cx.textAlign='center';
+  cx.fillText(l.kind==='nara'?'✨':'🎁',x,y+Math.sin(t*2+y)*3+5);cx.globalAlpha=1;cx.textAlign='start';});}
+function draw(){t+=.016;initCam();clampCam();const T=THEMES[S.theme]||THEMES.default;
+ const w=WW();
+ // vẽ 2 bản cạnh nhau để giáp biên liền mạch (bản chính + bản bù phía cần)
+ const offs=[0]; if(camX + W > w) offs.push(w); if(camX < W) offs.push(-w);
+ for(const ox of offs){
+ cx.save();cx.translate(-camX+ox,-camY);
+ if(S.mapMode==='real')drawRealWorld();else drawManWorld(T);
+ cx.fillStyle=T.part;
+ parts.forEach(p=>{p.y-=p.v;if(p.y<0)p.y=1;cx.globalAlpha=.2+.2*Math.sin(t*2+p.x*9);
+  cx.beginPath();cx.arc(p.x*WW(),p.y*WH(),p.s,0,7);cx.fill();});cx.globalAlpha=1;
+ drawWorldContent(T,S.mapMode==='real');
+ streams=streams.filter(sx=>sx.p<1);
+ streams.forEach(sm=>{sm.p+=.012;const mx=(sm.x1+sm.x2)/2,my=Math.min(sm.y1,sm.y2)-.13;
+  const q=(a,b,c,tt)=>((1-tt)**2)*a+2*(1-tt)*tt*b+tt*tt*c;
+  for(let k=0;k<10;k++){const tt=Math.max(0,sm.p-k*.018);if(tt<=0)continue;
+   cx.globalAlpha=(1-k/10)*.8;cx.fillStyle=k?T.stT:T.stH;
+   cx.beginPath();cx.arc(q(sm.x1,mx,sm.x2,tt)*WW(),q(sm.y1,my,sm.y2,tt)*WH(),k?2:3.4,0,7);cx.fill();}
+  cx.globalAlpha=1;});
+ ripples=ripples.filter(r=>r.p<1);
+ ripples.forEach(r=>{r.p+=.02;cx.globalAlpha=(1-r.p)*.7;cx.strokeStyle=T.rip;cx.lineWidth=2;
+  cx.beginPath();cx.arc(r.x*WW(),r.y*WH(),r.p*46,0,7);cx.stroke();cx.globalAlpha=1;});
+ drops.forEach(d=>{
+  if(S.filter!=='all'){if(S.filter==='twin'&&!d.twin)return;if(S.filter!=='twin'&&d.kind!==S.filter)return;}
+  const x=d.x*WW(),y=d.y*WH(),pu=1+.18*Math.sin(t*2.2+d.id);
+  if(d.mine){cx.globalAlpha=.85;cx.strokeStyle='#F3B94D';cx.lineWidth=2.5;
+   cx.beginPath();cx.arc(x,y,17*pu,0,7);cx.stroke();
+   cx.setLineDash([4,4]);cx.strokeStyle='#FF5FA8';cx.beginPath();cx.arc(x,y,24*pu,0,7);cx.stroke();cx.setLineDash([]);
+   cx.globalAlpha=1;cx.font='700 9.5px system-ui';cx.textAlign='center';
+   cx.fillStyle='#F3B94D';cx.fillText('🍑 CỦA BẠN',x,y-26);cx.textAlign='start';}
+  if(d.twin){cx.globalAlpha=.5+.25*Math.sin(t*3+d.id);cx.strokeStyle=T.twinRing;cx.lineWidth=2;
+   cx.beginPath();cx.arc(x,y,13*pu,0,7);cx.stroke();cx.globalAlpha=1;}
+  blob(x,y,26*pu,d.mine?'rgba(243,185,77,.35)':(d.twin?T.bt:T.bh));
+  cx.fillStyle=d.mine?'#F3B94D':(d.twin?T.twinCore:T.human);cx.beginPath();cx.arc(x,y,6.5,0,7);cx.fill();
+  cx.fillStyle='rgba(255,255,255,.95)';cx.beginPath();cx.arc(x-1.8,y-1.8,1.8,0,7);cx.fill();});
+ (function(){MINIS.forEach(m=>{
+  m.x+=m.vx;m.y+=m.vy;
+  if(m.x<.04||m.x>.96)m.vx*=-1;if(m.y<.06||m.y>.94)m.vy*=-1;
+  const x=m.x*WW(),y=m.y*WH(),c=LV_COLOR[m.lvl];
+  if(m.lvl>=4){const pu=1+.22*Math.sin(t*2.6+m.x*20);
+   cx.globalAlpha=.5;cx.strokeStyle=c;cx.lineWidth=2;
+   cx.beginPath();cx.arc(x,y,15*pu,0,7);cx.stroke();
+   if(m.lvl===5){cx.globalAlpha=.3;cx.beginPath();cx.arc(x,y,21*pu,0,7);cx.stroke();}
+   cx.globalAlpha=1;}
+  cx.fillStyle=c;cx.beginPath();cx.arc(x,y,10,0,7);cx.fill();
+  cx.fillStyle=S.mapMode==='real'?'#3a3630':'rgba(255,255,255,.9)';
+  cx.font='10px system-ui';cx.textAlign='center';cx.fillText(m.face,x,y+3.5);
+  cx.font='9px system-ui';cx.fillText(m.se,x+9,y-9);cx.textAlign='start';});})();
+ cx.restore();
+ }
+ requestAnimationFrame(draw);}
+setInterval(()=>{const a=drops[(Math.random()*drops.length)|0],b=drops[(Math.random()*drops.length)|0];
+ if(a!==b)streams.push({x1:a.x,y1:a.y,x2:b.x,y2:b.y,p:0});},5200);
+/* --- Kéo pan + tap: kéo quét được loot, tap chọn loot>event>mini>landmark>drop --- */
+let _drag=null,_moved=0;const _ptrs=new Map();let _pinch=null;
+function _wpt(e){const r=cv.getBoundingClientRect();const w=WW();
+ return {px:(((e.clientX-r.left+camX)%w)+w)%w, py:e.clientY-r.top+camY};}
+function _canvasXY(e){const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+cv.addEventListener('wheel',e=>{
+ if(R.stack[R.stack.length-1]!=='map'||R.sheets.length)return;
+ e.preventDefault();const c=_canvasXY(e);zoomAt(e.deltaY<0?1.12:0.89,c.x,c.y);},{passive:false});
+cv.addEventListener('pointerdown',e=>{
+ if(R.stack[R.stack.length-1]!=='map'||R.sheets.length)return;
+ _ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ try{cv.setPointerCapture(e.pointerId);}catch(_){}
+ if(_ptrs.size===2){const P=[..._ptrs.values()];
+  _pinch={d:Math.hypot(P[0].x-P[1].x,P[0].y-P[1].y),
+    mx:(P[0].x+P[1].x)/2,my:(P[0].y+P[1].y)/2};_drag=null;return;}
+ _drag={x:e.clientX,y:e.clientY,cx:camX,cy:camY};_moved=0;});
+cv.addEventListener('pointermove',e=>{
+ if(_ptrs.has(e.pointerId))_ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(_pinch&&_ptrs.size>=2){e.preventDefault();
+  const P=[..._ptrs.values()];const d=Math.hypot(P[0].x-P[1].x,P[0].y-P[1].y);
+  const mx=(P[0].x+P[1].x)/2-cv.getBoundingClientRect().left,my=(P[0].y+P[1].y)/2-cv.getBoundingClientRect().top;
+  if(_pinch.d>0)zoomAt(d/_pinch.d,mx,my);_pinch.d=d;return;}
+ if(!_drag)return;
+ e.preventDefault();
+ const dx=e.clientX-_drag.x,dy=e.clientY-_drag.y;
+ _moved=Math.max(_moved,Math.abs(dx)+Math.abs(dy));
+ camX=_drag.cx-dx;camY=_drag.cy-dy;clampCam();
+ const w=_wpt(e);
+ LOOT.forEach(l=>{if(!l.dead&&Math.hypot(l.x*WW()-w.px,l.y*WH()-w.py)<34)collectLoot(l);});});
+cv.addEventListener('pointercancel',e=>{_ptrs.delete(e.pointerId);_drag=null;_pinch=null;});
+cv.addEventListener('pointerup',e=>{
+ _ptrs.delete(e.pointerId);if(_pinch){_pinch=null;return;}
+ if(!_drag)return;const wasDrag=_moved>9;_drag=null;
+ if(wasDrag)return;
+ const w=_wpt(e),px=w.px/WW(),py=w.py/WH();
+ for(const l of LOOT){if(Math.hypot(l.x*WW()-w.px,l.y*WH()-w.py)<26){collectLoot(l);return;}}
+ for(const E of EVENTS){if(Math.hypot(E.x*WW()-w.px,E.y*WH()-w.py)<E.r+14){
+  toast(E.ic+' '+E.n+' — '+E.d);return;}}
+ let mb=null,md=1;MINIS.forEach(m=>{const dd=Math.hypot(m.x-px,m.y-py);if(dd<md){md=dd;mb=m;}});
+ if(mb&&md*WW()<34){openPlumper(mb);return;}
+ for(const L of LANDMARKS){if(Math.hypot(L.x*WW()-w.px,L.y*WH()-w.py)<28){
+  toast(L.ic+' '+L.n+' — điểm hẹn quen của Plumper khu này');return;}}
+ let best=null,bd=1;drops.forEach(d=>{const dd=Math.hypot(d.x-px,d.y-py);if(dd<bd){bd=dd;best=d;}});
+ if(best&&bd*WW()<38)openDrop(best);});
+
+/* ============ COMMON ============ */
+function enter(){const sp=el('splash');sp.classList.add('hide');
+ sp.style.pointerEvents='none';
+ setTimeout(()=>{sp.style.display='none';},520);}
+function filt(b,f){document.querySelectorAll('.filters .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');S.filter=f;}
+function toast(m){const T=el('toast');T.textContent=m;T.classList.add('show');clearTimeout(T._h);T._h=setTimeout(()=>T.classList.remove('show'),2700);}
+function pickTime(b){b.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');}
+function sendMsg(list,inp){const i=el(inp);if(!i.value.trim())return;
+  el(list).insertAdjacentHTML('beforeend',`<div class="mR">${i.value.replace(/</g,'&lt;')}</div>`);i.value='';
+  setTimeout(()=>el(list).insertAdjacentHTML('beforeend','<div class="mL">Ok bạn ơi 👍</div>'),900);}
+function openKyc(cb){S._cb=cb;openSheet('kycSheet');}
+function doKyc(){const b=el('kycBtn');b.textContent='Đang xác minh…';b.disabled=true;
+  setTimeout(()=>{S.kyc=true;closeSheet('kycSheet');toast('🪪 Đã xác minh — cánh cửa đã mở');
+    b.textContent='Xác minh nhanh (demo · 2 giây)';b.disabled=false;S._cb&&S._cb();S._cb=null;},1600);}
+
+/* ============ SEARCH / NOTI ============ */
+function openSearch(){openSheet('searchSheet');}
+function renderSearch(){const q=(el('searchInput').value||'').toLowerCase();
+  const hits=drops.filter(d=>!q||(d.title+d.desc+d.owner).toLowerCase().includes(q));
+  el('searchList').innerHTML=hits.map(d=>`<div class="item glass" onclick="closeSheet('searchSheet');goRoot('map');openDrop(drops.find(x=>x.id===${d.id}))">
+    <div class="avatar ${d.twin?'aura':''}" style="width:38px;height:38px;font-size:13px">${d.owner[0]}</div>
+    <div style="flex:1"><b style="font-size:13.5px">${d.title}</b><div class="small mut">${d.geo}</div></div>
+    <b class="money p">${fmt(d.price)}</b></div>`).join('')||'<div class="small mut" style="text-align:center;padding:10px">Không thấy — thử từ khác</div>';}
+const notis=[
+ ['💬','Minh ngỏ 95k cho "Dọn kho Q.7"',()=>{goRoot('jobs');setTab('drop');openSheet('offerSheet');}],
+ ['🤖','Twin có 2 bài chờ bạn duyệt',()=>goRoot('twin')],
+ ['⏱','Deal đang chờ xác nhận — auto sau 11:52',()=>{if(S.deal){renderDeal();push('deal');}else toast('Chưa có deal đang chạy — nhận một việc trên bản đồ');}],
+ ['★','Cửa sổ đánh giá mù đang mở',()=>openSheet('reviewSheet')]];
+function renderNoti(){el('notiList').innerHTML=notis.map((n,i)=>`<div class="item glass" onclick="closeSheet('notiSheet');notis[${i}][2]()">
+  <div style="font-size:18px">${n[0]}</div><div style="flex:1;font-size:13.5px;font-weight:600">${n[1]}</div><span class="mut">›</span></div>`).join('');}
+
+/* ============ DROP SHEET → NEGO ============ */
+function openDrop(d){cur=d;
+  camX=d.x*WW()-W/2;camY=d.y*WH()-H*0.42;clampCam();
+  el('dsChips').innerHTML=`<span class="chip on">${d.kind==='local'?'📍 Việc tại chỗ':'💻 Việc số'}</span>`+(d.twin?'<span class="chip gold">🤖 Bản thể số ✓</span>':'')+'<span class="chip">Cần bằng chứng</span>';
+  el('dsTitle').textContent=d.title;el('dsDesc').textContent=d.desc;
+  el('dsPrice').textContent=fmt(d.price);el('dsRef').textContent=d.ref;
+  el('dsAva').textContent=d.owner[0];el('dsAva').className='avatar'+(d.twin?' aura':'');
+  el('dsOwner').textContent=d.owner;el('dsOwnerSub').textContent=d.twin?'Chủ chịu trách nhiệm mọi việc twin làm':'Plumper đã xác minh ✓';
+  el('dsRank').textContent=d.rank;el('dsGeo').textContent='📍 '+d.geo;
+  el('dsCta').textContent=d.twin?'Thuê twin làm ngay':'Ngỏ lời nhận việc';
+  openSheet('dropSheet');}
+function shareDrop(){const url='superplump.vn/d/'+(cur?cur.id:'0');
+  try{navigator.clipboard&&navigator.clipboard.writeText('https://'+url);}catch(e){}
+  toast('🔗 Đã sao chép '+url+' — dán vào Zalo/FB');}
+function startNego(){if(!S.kyc){openKyc(startNego);return;}
+  closeSheet('dropSheet');S.negoMode='exec';S.myOffer=cur.price;S.round=1;
+  el('negoTitle').textContent=cur.title;el('negoWho').textContent=cur.owner+' · '+cur.rank;el('negoAva').textContent=cur.owner[0];
+  el('negoTheirLbl').textContent='Giá họ đề nghị';el('negoTheir').textContent=fmt(cur.price);
+  el('negoMine').textContent=fmt(S.myOffer);el('negoRound').textContent=1;
+  el('lockBtn').textContent='🔒 Chốt & khóa tiền an toàn';
+  el('negoMsgs').innerHTML='<div class="mL">Chiều nay xong được không bạn?</div><div class="mR">Được, 3h mình bắt đầu nhé 👌</div>';
+  push('nego');}
+function bump(v){S.myOffer=Math.max(10000,S.myOffer+v);S.round++;el('negoMine').textContent=fmt(S.myOffer);el('negoRound').textContent=Math.min(S.round,9);}
+function matchTheir(){S.myOffer=S.negoMode==='exec'?cur.price:95000;el('negoMine').textContent=fmt(S.myOffer);}
+
+/* ============ OFFERS (vai người thả) ============ */
+const myDrop={id:99,x:.30,y:.34,title:'Dọn kho 2 tiếng — Q.7',addr:'12 Nguyễn Thị Thập, Q.7'};
+function acceptOffer(p,who){
+  if(S.nara<p){toast('◈ Nara không đủ '+fmtN(p)+' — nạp thêm nhé');openSheet('topupSheet');return;}
+  closeSheet('offerSheet');
+  S.nara-=p;S.held+=p;addLedger('🔒 Khóa vào két · Dọn kho Q.7',-p,'g','n');
+  S.deal={...myDrop,agreed:p,role:'dropper',counter:who};S.dealStep=1;S.cd=43182;
+  renderDeal();push('deal');
+  toast('🔒 '+fmt(p)+' vào két an toàn — '+who+' bắt đầu chuẩn bị');
+  setTimeout(()=>{if(S.deal&&S.deal.role==='dropper'&&S.dealStep===1){S.dealStep=2;renderDeal();toast('▶️ '+who+' đã bắt đầu làm');}},2200);
+  setTimeout(()=>{if(S.deal&&S.deal.role==='dropper'&&S.dealStep===2){S.dealStep=3;renderDeal();toast('📸 '+who+' đã nộp bằng chứng — tới lượt bạn xác nhận');}},5200);}
+function counterOffer(){closeSheet('offerSheet');
+  S.negoMode='drop';S.myOffer=105000;S.round=1;cur=null;
+  el('negoTitle').textContent=myDrop.title;el('negoWho').textContent='Minh · Mận Vàng ★5.0 · họ ngỏ 95k';
+  el('negoAva').textContent='M';el('negoTheirLbl').textContent='Họ ngỏ';el('negoTheir').textContent=fmt(95000);
+  el('negoMine').textContent=fmt(S.myOffer);el('negoRound').textContent=1;
+  el('lockBtn').textContent='↔ Chốt ở giá của bạn';
+  el('negoMsgs').innerHTML='<div class="mL">95k được không bạn, mình ở gần lắm</div>';
+  push('nego');}
+
+/* ============ DEAL — máy trạng thái theo vai ============ */
+function lockDeal(){
+  if(S.negoMode==='drop'){
+    el('lockBtn').disabled=true;el('lockBtn').textContent='Đang chờ Minh…';
+    setTimeout(()=>{el('lockBtn').disabled=false;
+      el('negoMsgs').insertAdjacentHTML('beforeend','<div class="mL">Ok '+fmt(S.myOffer)+' chốt luôn 🤝</div>');
+      toast('🤝 Minh đồng ý '+fmt(S.myOffer));
+      setTimeout(()=>{R.stack.pop();acceptOffer(S.myOffer,'Minh');},900);},1400);
+    return;}
+  S.deal={...cur,agreed:S.myOffer,role:'exec',counter:cur.owner};S.dealStep=1;S.cd=43182;
+  renderDeal();R.stack.pop();push('deal');
+  toast('🔒 Tiền của '+cur.owner+' ('+fmt(S.myOffer)+') đã vào két — bắt tay thôi');}
+function renderDeal(){
+  const d=S.deal;if(!d)return;
+  el('dealTitle').textContent=d.title.length>22?d.title.slice(0,22)+'…':d.title;
+  const states=d.disputed?['','','','Tranh chấp ⚖️','Hoàn tất ✓']:['','Tiền đã khóa','Đang làm','Chờ xác nhận','Hoàn tất ✓'];
+  el('dealState').textContent=states[S.dealStep]||'—';
+  el('dealSteps').innerHTML=[0,1,2,3,4].map(i=>`<div class="stp ${i<=S.dealStep?'on':''}"></div>`).join('');
+  el('dealEscrow').textContent=fmt(d.agreed);
+  el('escrowLbl').textContent=d.role==='exec'?'🔒 Tiền của '+d.counter+' trong két':'🔒 Tiền của bạn trong két';
+  el('dealAddr').textContent=d.addr;
+  el('proofBox').style.display=S.dealStep>=3?'flex':'none';
+  const cta=d.role==='exec'
+    ?['—','▶️ Bắt đầu làm','📸 Nộp bằng chứng hoàn thành','Chờ '+d.counter+' xác nhận…','★ Viết đánh giá mù'][S.dealStep]
+    :['—','Chờ '+d.counter+' bắt đầu…','⏳ '+d.counter+' đang làm…','✓ Xác nhận hoàn thành — trao tiền','★ Viết đánh giá mù'][S.dealStep];
+  el('dealCta').textContent=d.disputed?'⚖️ Trọng tài đang xem…':cta;
+  el('dealCta').disabled=d.disputed||(d.role==='exec'?S.dealStep===3:(S.dealStep===1||S.dealStep===2));
+  el('dealCta').className='btn'+(S.dealStep===4?' mint':'');}
+function dealNext(){
+  const d=S.deal;if(!d||d.disputed)return;
+  if(d.role==='exec'){
+    if(S.dealStep===1){S.dealStep=2;renderDeal();toast('▶️ Bắt đầu — vị trí chính xác đã mở cho hai bên');}
+    else if(S.dealStep===2){S.dealStep=3;renderDeal();toast('📸 Đã nộp — '+d.counter+' có 12h, quá hạn hệ thống tự xác nhận');
+      setTimeout(()=>{if(S.deal&&!S.deal.disputed&&S.dealStep===3){S.dealStep=4;renderDeal();settle();}},2600);}
+    else if(S.dealStep===4){openSheet('reviewSheet');}
+  }else{
+    if(S.dealStep===3){S.dealStep=4;renderDeal();settle();}
+    else if(S.dealStep===4){openSheet('reviewSheet');}
+  }}
+function settle(){
+  const d=S.deal,p=d.agreed;S.settledOnce=true;
+  if(d.role==='exec'){const net=Math.round(p*.95);S.nara+=net;S.plump+=500;S.done++;
+    addLedger('✓ Nhận từ '+d.counter+' (đã trừ phí 5%)',net,'m','n');
+    addLedger('🍑 Thưởng hoàn thành việc',500,'g','p');
+    toast('✨ Hoàn tất! +◈'+fmtN(net)+' và +🍑500 về ví');}
+  else{S.held-=p;
+    addLedger('✓ Két → '+d.counter+' · phí 5% mỗi bên',0,'','n');
+    S.plump+=200;addLedger('🍑 Thưởng người thả tử tế',200,'g','p');
+    toast('✨ Đã trao ◈'+fmtN(Math.round(p*.95))+' cho '+d.counter+' · bạn +🍑200');}
+  streams.push({x1:d.x||.4,y1:d.y||.4,x2:.5,y2:.5,p:0});
+  if(!S.connections.includes(d.counter))S.connections.push(d.counter);
+  myMoments.unshift({ico:d.role==='exec'?'💪':'🙌',txt:'Hoàn thành "'+d.title+'"',
+    quote:d.role==='exec'?'"Làm gọn, đúng hẹn" — ★ đang chờ mở mù':'"Xác nhận nhanh, sòng phẳng" — ★ đang chờ mở mù',
+    price:(d.role==='exec'?'+':'')+fmt(Math.round(p*.95)),peach:0});
+  setTimeout(()=>toast('🧱 Khoảnh khắc mới lên tường nhà · 🤝 Đã kết nối với '+d.counter+' — DM đã mở'),3100);}
+function openDispute(){closeSheet('dispSheet');
+  if(!S.deal){toast('Chưa có deal đang chạy');return;}
+  S.deal.disputed=true;renderDeal();
+  toast('⚖️ Tiền đóng băng — trọng tài đang đọc event log…');
+  setTimeout(()=>{S.deal.disputed=false;S.dealStep=Math.max(S.dealStep,3);
+    if(S.deal.role==='exec'){S.dealStep=4;renderDeal();settle();toast('⚖️ Phán quyết: bằng chứng hợp lệ → trao cho bên nhận');}
+    else{renderDeal();toast('⚖️ Phán quyết: cần bạn xác nhận — bằng chứng hợp lệ');}},3600);}
+
+/* countdown */
+setInterval(()=>{if(S.deal&&S.dealStep===3&&!S.deal.disputed){S.cd--;
+  const h=(S.cd/3600)|0,m=((S.cd%3600)/60)|0,s=S.cd%60;
+  const c=el('cdown');if(c)c.textContent=`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}},1000);
+
+/* review */
+let star=4;
+function renderStars(){el('revStars').innerHTML=[1,2,3,4,5].map(i=>`<span onclick="setStar(${i})" style="opacity:${i<=star?1:.3};cursor:pointer">★</span>`).join('');}
+function setStar(n){star=n;renderStars();}
+function sendReview(){closeSheet('reviewSheet');S.rank+=12;el('rankLbl').textContent=S.rank.toLocaleString('vi-VN');
+  toast('★ Đã gửi trong mù · hai đánh giá cùng mở · PlumpRank +12 → '+S.rank.toLocaleString('vi-VN'));
+  goRoot('me');}
+
+/* ============ CREATE ============ */
+let cKind='local';
+function openCreate(){if(!S.kyc){openKyc(()=>push('create'));return;}push('create');}
+function segType(b,k){cKind=k;b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function dropIt(){
+  const ti=el('cTitle');if(!ti.value.trim()){toast('✍️ Đặt tên việc trước đã');ti.focus();ti.style.borderColor='var(--pink)';return;}
+  const price=parseInt((el('cPrice').value||'').replace(/\D/g,''))||100000;
+  const nd={id:Date.now(),x:.44+Math.random()*.12,y:.40+Math.random()*.14,kind:cKind,twin:false,
+    title:ti.value.trim(),desc:el('cDesc').value||'—',price,ref:'bạn vừa tạo giá này',owner:'Bạn',rank:'Mận Bạc ★4.9',
+    addr:'Q.7 · TP.HCM',geo:cKind==='local'?'Q.7 · mờ ~300m':'Việc số'};
+  drops.push(nd);ripples.push({x:nd.x,y:nd.y,p:0});
+  el('liveN').textContent=+el('liveN').textContent+1;
+  goRoot('map');toast('✦ Đã thả — Plumper quanh Q.7 đang thấy chấm sáng của bạn');
+  ti.value='';el('cDesc').value='';}
+
+/* ============ JOBS ============ */
+let curTab='active';
+function setTab(k){curTab=k;el('jobTabs').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',['active','drop','twin','done'][i]===k));renderJobs(k);}
+function tabJobs(b,k){curTab=k;b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderJobs(k);}
+function renderJobs(k){
+  const st=S.deal?(S.deal.disputed?'Tranh chấp ⚖️':['','Tiền đã khóa','Đang làm','Chờ xác nhận','Hoàn tất ✓'][S.dealStep]):null;
+  const rows={
+    active:S.deal?[[S.deal.title,st+(S.deal.role==='dropper'?' · bạn là người thả':''),fmt(S.deal.agreed),"renderDeal();push('deal')"]]
+      :[['Chưa có việc đang chạy','Nhận một việc trên bản đồ để bắt đầu','',"goRoot('map')"]],
+    drop:[['Dọn kho 2 tiếng — Q.7','2 lời ngỏ mới 💬 · chạm để xem','110.000đ',"openSheet('offerSheet')"]],
+    twin:[['Dịch email 200 chữ A–V','Twin làm · chờ bạn duyệt','90.000đ',"push('approve')"]],
+    done:[['Dịch tài liệu Q.1','★5 · Hoàn tất','+104.500đ',"toast('Sổ minh bạch: mọi deal cũ đọc lại được từ event log')"],
+          ['Chụp ảnh món quán Mận Đỏ','★5 · Hoàn tất','+190.000đ',"toast('Sổ minh bạch: mọi deal cũ đọc lại được')"]]}[k]||[];
+  el('jobsList').innerHTML=rows.map(r=>`<div class="item glass" onclick="${r[3]}">
+    <div style="flex:1"><div style="font-weight:700;font-size:14px">${r[0]}</div><div class="small mut">${r[1]}</div></div>
+    <b class="money ${r[2].startsWith('+')?'m':''}">${r[2]}</b></div>`).join('');}
+
+/* ============ TWIN ============ */
+function renderDrafts(){
+  el('twinBadge').textContent=S.drafts;el('twinBadge').style.display=S.drafts?'flex':'none';
+  el('draftList').innerHTML=S.drafts<=0?'<div class="small mut" style="text-align:center;padding:8px">Không còn bài chờ — twin đang tự trực trên bản đồ 🌙</div>':
+   [['Dịch email 200 chữ A–V','Khách: Minh · 90.000đ · ⏱ 2h41\''],['Caption 5 bài quán cà phê','Khách: Vy · 75.000đ · ⏱ 6h']].slice(0,S.drafts)
+   .map(r=>`<div class="item glass" onclick="push('approve')"><div class="avatar aura" style="width:38px;height:38px;font-size:13px">M</div>
+   <div style="flex:1"><div style="font-weight:700;font-size:13.5px">${r[0]}</div><div class="small mut">${r[1]}</div></div><span class="chip on">Duyệt</span></div>`).join('');}
+function approveDraft(){S.drafts=Math.max(0,S.drafts-1);S.energy-=3;S.approvedOnce=true;
+  S.plump+=200;addLedger('🍑 Duyệt bài twin đúng SLA',200,'g','p');
+  el('energyLbl').textContent=S.energy+' / 50';el('energyBar').style.width=(S.energy*2)+'%';
+  toast('✓ Đã nộp cho khách · twin −3⚡ · bạn +🍑200');back();renderDrafts();}
+function feedTwin(){if(S.plump<5000){toast('🍑 Thiếu Plump — làm nhiệm vụ trong Wallet để farm');push('wallet');return;}
+  S.plump-=5000;S.energy=Math.min(50,S.energy+10);
+  el('energyLbl').textContent=S.energy+' / 50';el('energyBar').style.width=(S.energy*2)+'%';
+  addLedger('🍑 Năng lượng Mận cho twin',-5000,'','p');toast('🍑 Twin no rồi — +10⚡ (−🍑5.000)');}
+function openQualify(){el('q1').textContent='—';el('q2').textContent='—';el('q3').textContent='—';
+  ['qb1','qb2','qb3'].forEach(i=>el(i).style.width='0%');el('qScores').style.display='none';
+  el('qBtn').disabled=false;el('qBtn').textContent='Cho twin vào phòng thi';openSheet('qualifySheet');}
+function runQualify(){const b=el('qBtn');b.disabled=true;b.textContent='Twin đang làm bài — bạn không can thiệp được…';
+  const run=(bar,lbl,delay)=>setTimeout(()=>{let w=0;const iv=setInterval(()=>{w+=8;el(bar).style.width=Math.min(100,w)+'%';
+    if(w>=100){clearInterval(iv);el(lbl).textContent='Nộp ✓';}},60);},delay);
+  run('qb1','q1',100);run('qb2','q2',1100);run('qb3','q3',2100);
+  setTimeout(()=>{el('qScores').style.display='flex';b.textContent='🥇 ĐẬU — Qualify Vàng · Viết content';
+    b.classList.add('mint');
+    el('twinChips').insertAdjacentHTML('beforeend','<span class="chip gold">🥇 Qualify · Content</span>');
+    toast('🥇 SoulFile v3 đã khóa — twin được nhận việc Viết content');},3600);}
+
+/* ============ WALLET 2 TIỀN TỆ ============ */
+const ledgerRows=[
+ ['✓ Nhận · Dịch tài liệu Q.1','+◈104.500','m'],
+ ['🍑 Việc công ích: dọn điểm ngập báo phường','+🍑800','g'],
+ ['🔒 Khóa két · Deal #2903','−◈110.000','g'],
+ ['＋ Nạp Nara','+◈500.000','m']];
+function addLedger(t,amt,c,cur){const ic=cur==='p'?'🍑':'◈';
+  ledgerRows.unshift([t,amt===0?'đã trao':(amt>0?'+':'−')+ic+fmtN(Math.abs(amt)),c]);renderLedger();}
+function renderLedger(){
+  const set=(id,v)=>{const e=el(id);if(e)e.textContent=v;};
+  set('wNara','◈ '+fmtN(S.nara));set('wNaraMini','◈ '+fmtN(S.nara));set('shopNara',fmtN(S.nara));
+  set('wPlump','🍑 '+fmtN(S.plump));set('wPlumpMini','🍑 '+fmtN(S.plump));set('shopPlump',fmtN(S.plump));
+  set('wHeld',fmtN(S.held));set('wHeldMini',fmtN(S.held));
+  const html=ledgerRows.slice(0,6).map(r=>`<div class="kv"><span>${r[0]}</span><b class="money ${r[2]}">${r[1]}</b></div>`).join('');
+  const l1=el('ledger');if(l1)l1.innerHTML=html;const l2=el('ledger2');if(l2)l2.innerHTML=html;}
+/* ==== TỔ MẬN state ==== */
+S.room=S.room||{wallpaper:'wp_lantern',floor:'floor_go',window:'win_nhieuloc',lamp:'lamp_neon',music:'music_lofi'};
+S.ava=S.ava||{head:'non_la_neon',hand:'hand_caphe',face:'face_cuoi',aura:null};
+S.earned=S.earned||['choi_vang'];           // demo: đã có 1 mốc
+S.online=true;
+const ROOM_ART={wp_lantern:'linear-gradient(#3a1330,#241026)',wp_neon:'linear-gradient(120deg,#2a1145,#0c2a3a)',
+ win_nhieuloc:'linear-gradient(#123a5a,#1d6a8a)',win_landmark:'linear-gradient(#1a1040,#3a2a6a)',win_benthanh:'linear-gradient(#3a2410,#7a4a1a)',
+ lamp_neon:'💡',music_lofi:'🎵',music_mua:'🌧️'};
+const HEAD_ART={non_la_neon:'👒',mu_chrome:'⛑️',beret_designer:'🎨'};
+const HAND_ART={hand_caphe:'🥤',hand_tovit:'🪛',hand_co:'🖌️'};
+function avatarHTML(o,opts){opts=opts||{};const sleeping=opts.sleeping;
+ return `<div class="plum-ava ${sleeping?'sleeping':''} ${o.aura?'':''}">
+  ${o.aura?'<div class="layer aura-ring"></div>':''}
+  <div class="layer body" style="--acc:#FF5FA8"></div>
+  <div class="layer face">${sleeping?'😴':'😊'}</div>
+  ${o.head&&HEAD_ART[o.head]?`<div class="layer head">${HEAD_ART[o.head]}</div>`:''}
+  ${o.hand&&HAND_ART[o.hand]?`<div class="layer hand">${HAND_ART[o.hand]}</div>`:''}
+  ${sleeping?'<span class="zzz">z<sup>z</sup></span>':''}
+  ${opts.working?'<span class="zzz" style="right:auto;left:-6px">⌨️</span>':''}
+ </div>`;}
+const SKINS={m1:'radial-gradient(circle at 38% 32%,#FFB3D6,#FF5FA8)',m2:'radial-gradient(circle at 38% 32%,#FFE3A8,#F3B94D)',
+ m3:'radial-gradient(circle at 38% 32%,#B8F5E0,#5ED9B0)',m4:'radial-gradient(circle at 38% 32%,#E2CFFF,#B69CFF)'};
+const OUTFITS={aodai:{bg:'linear-gradient(#E0355E,#A81C42)',trim:'#F3B94D',ic:'🌸',n:'Áo dài'},
+ hoodie:{bg:'linear-gradient(#7a5570,#4a3348)',trim:'#2e2030',ic:'🎧',n:'Hoodie'},
+ vest:{bg:'linear-gradient(#2b2540,#181322)',trim:'#F3B94D',ic:'🎀',n:'Vest'},
+ pijama:{bg:'radial-gradient(circle,#fff 2px,transparent 2.6px) 0 0/13px 13px,#BFE0FF',trim:'#9cc8f0',ic:'💤',n:'Pijama'}};
+function chibiHTML(o,opts){opts=opts||{};o=o||{};
+ const skin=SKINS[o.skin]||SKINS.m1, of=OUTFITS[o.outfit]||OUTFITS.hoodie;
+ const sleeping=opts.sleeping, ride=o.ride;
+ return `<div class="chibi ${ride?'riding':''} ${opts.small?'small':''} ${sleeping?'zz':''}">
+  ${o.aura?'<div class="cb-aura"></div>':''}
+  ${o.frame?'<div class="cb-frame"></div>':''}
+  ${ride?`<div class="cb-ride">${ride}</div>`:''}
+  <div class="cb-arm l" style="background:${skin}"></div>
+  <div class="cb-arm r" style="background:${skin}"></div>
+  <div class="cb-body" style="background:${of.bg}">
+    <div class="cb-chest">${of.ic}</div><div class="cb-trim" style="background:${of.trim}"></div></div>
+  ${ride?'':'<div class="cb-leg l" style="background:'+skin+'"></div><div class="cb-leg r" style="background:'+skin+'"></div>'}
+  <div class="cb-head" style="background:${skin}"></div>
+  <div class="cb-leaf">🍃</div>
+  <div class="cb-face">${sleeping?'😴':'😊'}</div>
+  ${o.head&&HEAD_ART[o.head]?`<div class="cb-hat">${HEAD_ART[o.head]}</div>`:''}
+  ${o.hand&&HAND_ART[o.hand]?`<div class="cb-hand">${HAND_ART[o.hand]}</div>`:''}
+  ${o.pet?`<div class="cb-pet">${o.pet}</div>`:''}
+  ${opts.working?'<span class="zzz" style="left:-8px;top:0">⌨️</span>':''}
+ </div>`;}
+S.ava=Object.assign({skin:'m1',outfit:'hoodie',pet:'🐱',ride:null},S.ava);
+const GEAR_OPTS={head:[null,'non_la_neon','mu_chrome','beret_designer'],
+ hand:[null,'hand_caphe','hand_tovit','hand_co'],aura:[null,'aura_5sao'],
+ frame:[null,'frame_man_bong'],pin:[null,'pin_caphe','pin_toolbox'],twin:[null,'twin_skin_holo']};
+const SLOT_VI={head:'Đầu',hand:'Tay',aura:'Aura',frame:'Khung',pin:'Ghim map',twin:'Skin twin'};
+function cycleGear(slot){
+ if(slot==='aura'&&!S.settledOnce&&!S.ava.aura){
+  toast('🔒 Aura chỉ mở bằng LAO ĐỘNG — hoàn thành kèo đầu tiên đã');return;}
+ const L=GEAR_OPTS[slot];const i=L.indexOf(S.ava[slot]||null);
+ S.ava[slot]=L[(i+1)%L.length];
+ const g=S.ava[slot]&&GEAR_META[S.ava[slot]];
+ toast(g?('⚔️ '+SLOT_VI[slot]+': '+g[1]):('Đã tháo '+SLOT_VI[slot]));
+ renderAvatarView();renderRoom();}
+function renderLevel(){
+ const l=S.lvl, sc=calcScore(l), lv=levelOf(sc);
+ const names=['','Mầm Mận','Mận Xanh','Mận Bạc','Mận Vàng','Mận Kim Cương'];
+ const cols=['','#9AA0B5','#7FD97F','#BFD3FF','#F3B94D','#FF5FA8'];
+ const nextTier = lv<5?TIERS[lv]:null;
+ const prevTier = TIERS[lv-1]||0;
+ const pct = nextTier? Math.min(100,Math.round((sc-prevTier)/(nextTier-prevTier)*100)) : 100;
+ const toNext = nextTier? +(nextTier-sc).toFixed(2) : 0;
+ const perks={3:'🤖 Mở Twin tầng 2 — đề xuất việc',4:'🔑 Mở mandate — Twin tự nhận việc số',5:'💞 Mở Twin-to-Twin + bảo lãnh người mới'};
+ el('levelBody').innerHTML=`
+  <div class="lvhero">
+   <div class="lvbadge" style="background:linear-gradient(135deg,${cols[lv]},#F3B94D)">Lv${lv}</div>
+   <div class="lvname" style="color:${cols[lv]}">${names[lv]} · ${sc} điểm</div>
+  </div>
+  ${nextTier?`<div class="small mut" style="text-align:center">Còn <b style="color:#F3B94D">${toNext} điểm</b> nữa lên <b>${names[lv+1]}</b></div>
+  <div class="lvprog"><i style="width:${pct}%"></i></div>
+  <div class="small mut" style="text-align:center">${sc} / ${nextTier}</div>`
+  :`<div class="small mut" style="text-align:center">🏆 Đã đạt cấp cao nhất — Mận Kim Cương!</div>`}
+
+  <b style="font-size:13px">📊 Điểm của bạn được tính từ</b>
+  <div class="lvfactors">
+   <div class="lvfac"><div class="v">${l.validDeals}</div><div class="l">KÈO HỢP LỆ</div></div>
+   <div class="lvfac"><div class="v">★${l.avgRating}</div><div class="l">ĐIỂM TRUNG BÌNH</div></div>
+   <div class="lvfac"><div class="v">${l.distinctClients}</div><div class="l">KHÁCH KHÁC NHAU</div></div>
+  </div>
+  <div class="lvformula">score = ${l.validDeals} × (${l.avgRating}/5) × √${Math.min(l.distinctClients,25)} = ${sc}</div>
+  <div class="card" style="border-left:3px solid #FF6B6B;background:rgba(255,107,107,.05);border-radius:11px;padding:10px 13px">
+   <b style="font-size:12px">🛡️ Chống cày</b>
+   <div class="small mut" style="margin-top:4px">Chỉ khách <b>khác nhau</b> mới tính. ${l.lowBlocked} kèo giá bất thường thấp của bạn <b>không được tính điểm</b> — chợ này uy tín phải kiếm thật, không phá giá cày số, không thuê acc phụ.</div>
+  </div>
+
+  <b style="font-size:13px">🪜 Thang cấp & quyền mở khoá</b>
+  ${[1,2,3,4,5].map(i=>`<div class="lvtier ${i===lv?'here':(i>lv?'locked':'')}">
+    <span style="font-weight:800;color:${cols[i]};width:38px">Lv${i}</span>
+    <span style="flex:1"><b>${names[i]}</b>${perks[i]?' · '+perks[i]:''}</span>
+    <span class="small mut">${TIERS[i-1]}đ</span></div>`).join('')}
+  <div class="small mut" style="text-align:center;margin-top:8px">💡 Người mới nhận giá tốt để cày cấp · người cấp cao ra giá cao vì uy tín bảo chứng</div>`;}
+function renderAvatarView(){
+ const lv=S.settledOnce?2:1;el('avLv').textContent='Lv'+lv+' · '+LV_NAME[lv];
+ const cell=(slot)=>{const id=S.ava[slot];const g=id&&GEAR_META[id];
+  return `<div class="gcell ${g?'r-'+g[2]:'r-empty'}" onclick="cycleGear('${slot}')">
+   <div class="gic">${g?g[0]:'▫️'}</div><div class="gn">${g?g[1]:SLOT_VI[slot]}</div>
+   <div class="gs">${g?g[2]:'chạm để đeo'}</div></div>`;};
+ el('avatarBody').innerHTML=`
+  <div class="avstage">${chibiHTML(S.ava)}<div class="pedestal"></div></div>
+  <b style="font-size:13px">⚔️ Trang bị <span class="small mut">— chạm ô để xoay vòng, chạm tiếp để tháo</span></b>
+  <div class="gearGrid">${cell('head')}${cell('hand')}${cell('aura')}${cell('frame')}${cell('pin')}${cell('twin')}</div>
+  <div class="small mut" style="margin:-4px 0 10px">🌟 Aura & 🪽 Cánh chỉ mở bằng lao động — không mua được. Ghim map & skin twin hiện trên bản đồ/twin của bạn.</div>
+  <b style="font-size:13px">👘 Trang phục & Style</b>
+  ${wardrobeRows()}
+  <div class="roomcard"><b>💡 Mẹo:</b> <span class="small mut">Đồ mới nằm ở 🛍️ Shop (mua bằng ◈/🍑) và 🎁 túi mù nhặt trên bản đồ.</span></div>`;}
+function addPlumper(name){S.friendReq[name]=1;
+ const m=MINIS.find(x=>x.name===name);if(m)openPlumper(m);
+ toast('🤝 Đã gửi lời mời tới '+name+' — làm chung 1 kèo là thành bạn thật');}
+function renderRoom(){const r=S.room,twinBusy=S.draftsPending>0;
+ const shelfIcons={choi_vang:'🧹',aura_5sao:'🌟'};
+ el('roomBody').innerHTML=`
+  <div class="room2d">
+    <div class="wall" style="background:${ROOM_ART[r.wallpaper]||'#241026'}"></div>
+    <div class="floor"></div>
+    ${r.window?`<div class="win" style="background:${ROOM_ART[r.window]||'#123'}"></div>`:''}
+    ${r.music?`<div class="music">${ROOM_ART[r.music]||'🎵'} <span class="mut small">đang phát</span></div>`:''}
+    ${r.lamp?`<div class="lamp">${ROOM_ART[r.lamp]||'💡'}</div>`:''}
+    <div class="shelf">${S.earned.map(id=>shelfIcons[id]||'🏆').join('')}</div>
+    <div class="twindesk">🖥️${twinBusy?'<span class="work">twin đang làm…</span>':''}</div>
+    <div class="avaspot">${chibiHTML(S.ava,{sleeping:!S.online})}</div>
+  </div>
+  <button class="chip on" style="margin:-4px 0 10px" onclick="push('avatar')">🧍 Chỉnh Mận nhân — trang bị & trang phục ›</button>
+  <div class="roomcard"><b>🏆 Kệ thành tựu</b><div class="small mut" style="margin-top:3px">
+    Mọc từ việc thật — không mua được. ${S.earned.length?S.earned.map(id=>id==='choi_vang'?'🧹 Cây Chổi Vàng (10 kèo dọn)':id).join(' · '):'Chưa có — làm việc để mọc đồ đầu tiên'}</div></div>
+  <div class="roomcard"><b>🤖 Góc Twin</b><div class="small mut" style="margin-top:3px">
+    ${twinBusy?'Twin đang gõ phím hoàn thành bài — minh bạch AI đang làm gì':'Twin đang nghỉ · nhận việc số để thấy nó làm'}</div></div>
+  <div class="roomcard"><b>📖 Sổ khách</b><div class="small mut">Chỉ người từng làm việc với bạn mới viết được</div>
+    <div class="gbentry">"Giao hàng nhanh, mận chất!" — <b>Minh</b> <span class="mut">· sau deal dịch email</span></div>
+    <div class="gbentry">"Dọn kho sạch bong, thuê lại lần nữa 👍" — <b>Lan</b></div>
+  </div>
+  <div class="roomcard"><b>🛒 Đang mở — thuê tôi ngay</b>
+    <div class="gbentry" style="border-color:#F3B94D">💻 Thiết kế logo quán cà phê · <b>◈ 250k</b> <button class="chip on" style="float:right" onclick="toast('Mở drop từ phòng — demo')">Thuê</button></div>
+  </div>`;}
+function editSlot(cat,slot,id){if(cat==='room')S.room[slot]=id;else S.ava[slot]=id;
+ renderRoom();renderRoomEdit();
+ if(R.stack[R.stack.length-1]==='avatar')renderAvatarView();
+ toast('✦ Đã đổi '+slot);}
+function optRow(cat,slot,cur,list){return `<div class="roomcard"><b>${slot}</b><div class="slotrow">
+   ${list.map(x=>`<span class="chip ${(cur||'')===x.id?'on':''}" onclick="editSlot('${cat}','${slot}','${x.id}')">${x.ic} ${x.n}</span>`).join('')}</div></div>`;}
+function wardrobeRows(){return '<div class="roomcard"><b>🎨 Màu mận (skin)</b><div class="slotrow">'
+   +Object.keys(SKINS).map(k=>`<span class="swatch ${S.ava.skin===k?'on':''}" style="background:${SKINS[k]}" onclick="editSlot('ava','skin','${k}')"></span>`).join('')
+   +'</div></div>'
+  +optRow('ava','outfit',S.ava.outfit,Object.keys(OUTFITS).map(k=>({id:k,ic:OUTFITS[k].ic,n:OUTFITS[k].n})))
+  +optRow('ava','pet',S.ava.pet,[{id:'',ic:'🚫',n:'Không'},{id:'🐱',ic:'🐱',n:'Mèo'},{id:'🐶',ic:'🐶',n:'Cún'},{id:'🦆',ic:'🦆',n:'Vịt'},{id:'🐉',ic:'🐉',n:'Rồng mini'}])
+  +optRow('ava','ride',S.ava.ride,[{id:'',ic:'🚫',n:'Đi bộ'},{id:'🛵',ic:'🛵',n:'Xe máy'},{id:'🚲',ic:'🚲',n:'Xe đạp'},{id:'🛴',ic:'🛴',n:'Scooter'},{id:'☁️',ic:'☁️',n:'Mây bay'}]);}
+function renderRoomEdit(){
+ el('roomEditBody').innerHTML=
+  '<div class="small mut" style="margin-bottom:8px">🎨 Đồ trang trí (mua bằng ◈Nara / 🍑Plump ở Shop) — đây là demo đủ đồ</div>'
+  +optRow('room','wallpaper',S.room.wallpaper,[{id:'wp_lantern',ic:'🏮',n:'Đèn Lồng'},{id:'wp_neon',ic:'🌆',n:'Neon SG'}])
+  +optRow('room','window',S.room.window,[{id:'win_nhieuloc',ic:'🌊',n:'Nhiêu Lộc'},{id:'win_landmark',ic:'🏙️',n:'Landmark 81'},{id:'win_benthanh',ic:'🏛️',n:'Bến Thành'}])
+  +optRow('room','lamp',S.room.lamp,[{id:'lamp_neon',ic:'💡',n:'Neon Mận'}])
+  +optRow('room','music',S.room.music,[{id:'music_lofi',ic:'🎵',n:'Lo-fi SG'},{id:'music_mua',ic:'🌧️',n:'Tiếng Mưa'}])
+  +optRow('ava','head',S.ava.head,[{id:'non_la_neon',ic:'👒',n:'Nón lá Neon'},{id:'mu_chrome',ic:'⛑️',n:'Mũ Chrome'},{id:'beret_designer',ic:'🎨',n:'Beret'}])
+  +optRow('ava','hand',S.ava.hand,[{id:'hand_caphe',ic:'🥤',n:'Cà phê'},{id:'hand_tovit',ic:'🪛',n:'Tuốc-vít'},{id:'hand_co',ic:'🖌️',n:'Cọ'}])
+  +wardrobeRows();}
+/* ==== TIN NHẮN (demo — bản thật chạy trên /v1/inbox + /v1/conversations, đã test 14 ca) ==== */
+S.chats=S.chats||[
+ {id:'cMinh',name:'Minh',ava:'M',ctx:'sau deal "Dịch email A–V"',typing:false,unread:2,msgs:[
+   {id:1,who:'them',body:'Chào bạn! Email dịch xong chưa nhỉ? 😊',ts:'09:12'},
+   {id:2,who:'me',body:'Xong rồi nè, mình vừa nộp bằng chứng',ts:'09:15'},
+   {id:3,who:'them',body:'Đọc mượt lắm, đối tác Sing khen 👏',ts:'09:20'},
+   {id:4,who:'them',body:'Tuần sau có 3 email nữa, nhận tiếp không?',ts:'09:21'}]},
+ {id:'cLan',name:'Lan',ava:'L',ctx:'sau deal "Dọn kho Q.7"',typing:false,unread:0,msgs:[
+   {id:1,who:'them',body:'Kho gọn quá trời, cảm ơn nha 🙏',ts:'Hôm qua'},
+   {id:2,who:'me',body:'Dạ có gì chị cứ thả kèo tiếp 😄',ts:'Hôm qua'}]}];
+S.curChat=null; S.replyTo=null; let _msgSeq=100;
+const REPLIES={cMinh:['Ok chốt vậy nhé, mình thả kèo lên map liền 📌','Giá vẫn như cũ được không?','Deal! Hẹn tuần sau 🤝'],
+ cLan:['Tuần sau chắc có kèo sắp xếp tủ hồ sơ đó 😆','Nhà mình lúc nào cũng có nước mát chờ sẵn 🧃']};
+function updateMsgBadge(){const n=S.chats.reduce((t,c)=>t+c.unread,0);const b=el('msgBadge');
+ if(b){b.style.display=n?'inline-block':'none';b.textContent=n;}}
+function renderInbox(){el('inboxList').innerHTML=S.chats.map(c=>{
+ const last=c.msgs[c.msgs.length-1];
+ const kico=c.kind==='group'?'👥 ':c.kind==='channel'?'📣 ':'';
+ return `<div class="item glass" onclick="openChat('${c.id}')">
+  <div class="ava" style="${c.kind==='channel'?'background:linear-gradient(135deg,#F3B94D,#e08a2a)':''}">${c.ava}</div>
+  <div style="flex:1;min-width:0"><b>${kico}${c.name}</b> <span class="small mut">· ${c.ctx}</span>
+   <div class="small mut" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${last.revoked?'(đã thu hồi)':(last.who==='me'?'Bạn: ':'')+last.body}</div></div>
+  ${c.unread?`<span class="unreadpill">${c.unread}</span>`:`<span class="small mut">${last.ts}</span>`}</div>`;}).join('')
+ +'<div class="small mut" style="text-align:center;padding:10px">🔒 Không DM lạnh — chỉ mở được hộp thoại với người từng làm việc chung</div>';}
+function openChat(id){const c=S.chats.find(x=>x.id===id);c.unread=0;S.curChat=id;S.replyTo=null;
+ updateMsgBadge();push('chat');}
+function chatBubble(c,m){
+ const lbl=(c.kind==='group'||c.kind==='channel')&&m.who==='them'&&m.sender
+   ?`<div class="senderlbl">${m.sender}</div>`:'';
+ if(m.revoked)return lbl+`<div class="bub rev ${m.who}">(đã thu hồi)</div>`;
+ const r=m.reply?`<span class="rline">↩︎ ${m.reply}</span>`:'';
+ const act=m.who==='me'?`<span class="mact" onclick="revokeMsg(${m.id})">thu hồi</span>`
+                       :`<span class="mact" onclick="setReply(${m.id})">↩︎</span>`;
+ let inner=m.body;
+ if(m.type==='image')inner=`<div class="imgbub">🌇</div><div class="small">${m.body||''}</div>`;
+ if(m.type==='location')inner=`<div class="locbub"><div class="locmap"><span class="pinemj">📍</span></div>
+   <div class="locinfo"><b>📍 ${m.body}</b><br><span class="chip" style="margin-top:5px;display:inline-block" onclick="closeSheet('plumperSheet');goRoot('map')">Mở bản đồ ›</span></div></div>`;
+ if(m.type==='gift')inner='<div style="font-weight:800">'+m.body+'</div>';
+ if(m.type==='giftitem')inner='<div class="giftItemInfo" style="border-left:3px solid #F3B94D"><b>'+m.body+'</b><br><span class="mut">Chạm người nhận để họ đeo vào Mận nhân</span></div>';
+ const tipcls=(m.type==='tip'||m.type==='gift'||m.type==='giftitem')?' tipbub':'';
+ return lbl+`<div class="bub ${m.who}${tipcls}">${act}${r}${inner}<span class="mtime">${m.ts}${m.edited?' · đã sửa':''}</span></div>`;}
+function renderChat(){const c=S.chats.find(x=>x.id===S.curChat);if(!c)return;
+ const kico=c.kind==='group'?'👥 ':c.kind==='channel'?'📣 ':'💬 ';
+ el('chatTitle').textContent=kico+c.name;el('chatCtx').textContent=c.ctx;
+ const ro=c.kind==='channel'&&c.readonly;
+ el('msgRow').style.display=ro?'none':'flex';
+ el('channelBar').style.display=ro?'flex':'none';
+ if(ro)el('chSubs').textContent=c.ctx;
+ el('chatScroll').innerHTML=c.msgs.map(m=>chatBubble(c,m)).join('');
+ el('typingLine').innerHTML=c.typing?`${c.name} đang gõ<span class="dots"></span>`:'';
+ const sc=el('chatScroll');sc.scrollTop=sc.scrollHeight;
+ const rb=el('replyBar');if(S.replyTo){rb.style.display='flex';
+  el('replyPrev').textContent='↩︎ '+(c.msgs.find(m=>m.id===S.replyTo)?.body||'').slice(0,60);}
+ else rb.style.display='none';}
+function setReply(mid){S.replyTo=mid;renderChat();el('msgInput').focus();}
+function clearReply(){S.replyTo=null;renderChat();}
+function revokeMsg(mid){const c=S.chats.find(x=>x.id===S.curChat);
+ const m=c.msgs.find(x=>x.id===mid);if(m){m.revoked=true;m.body='';}
+ renderChat();toast('↩ Đã thu hồi — bên kia thấy "(đã thu hồi)"');}
+function sendMsg(){const inp=el('msgInput');const t=(inp.value||'').trim();if(!t)return;
+ const c=S.chats.find(x=>x.id===S.curChat);
+ const reply=S.replyTo?(c.msgs.find(m=>m.id===S.replyTo)?.body||'').slice(0,40):null;
+ c.msgs.push({id:++_msgSeq,who:'me',body:t,reply,ts:'bây giờ'});
+ inp.value='';S.replyTo=null;renderChat();
+ c.typing=true;setTimeout(()=>renderChat(),80);
+ setTimeout(()=>{c.typing=false;
+  const pool=REPLIES[c.id]||['Ok nha!'];
+  c.msgs.push({id:++_msgSeq,who:'them',body:pool[Math.floor(Math.random()*pool.length)],ts:'bây giờ'});
+  if(S.curChat===c.id&&R.stack[R.stack.length-1]==='chat'){renderChat();}
+  else{c.unread++;updateMsgBadge();}},1400);}
+updateMsgBadge();
+/* ==== MAP MODE + MINI PLUMPER + INSPECT ==== */
+S.mapMode=S.mapMode||'man';
+function zoomBtn(f){zoomAt(f,W/2,H/2);}
+function zoomReset(){ZOOM=1;_camInit=false;initCam();clampCam();toast('⊙ Về giữa Sài Gòn');}
+function toggleMapMode(){S.mapMode=S.mapMode==='man'?'real':'man';
+ const p=el('mapModePill');if(p)p.textContent=S.mapMode==='real'?'🌌 Về Đêm Mận':'🗺️ Xem bản đồ thật';
+ toast(S.mapMode==='real'?'🗺️ Bản đồ thật (demo) — phố xá Sài Gòn':'🌌 Về Bản đồ Mận đêm');}
+function drawRealBase(){
+ cx.fillStyle='#EAE6DC';cx.fillRect(0,0,W,H);
+ cx.fillStyle='#DED9CC';
+ for(let i=0;i<7;i++)for(let j=0;j<10;j++){cx.fillRect(W*i/7+8,H*j/10+8+(i%2?6:0),W/7-16,H/10-16);}
+ cx.strokeStyle='#FFFFFF';cx.lineWidth=7;
+ for(let i=1;i<7;i++){cx.beginPath();cx.moveTo(W*i/7,0);cx.lineTo(W*i/7+22,H);cx.stroke();}
+ for(let i=1;i<10;i++){cx.beginPath();cx.moveTo(0,H*i/10);cx.lineTo(W,H*i/10-14);cx.stroke();}
+ cx.strokeStyle='#F6C453';cx.lineWidth=11;
+ cx.beginPath();cx.moveTo(-10,H*.72);cx.lineTo(W+10,H*.52);cx.stroke();
+ cx.beginPath();cx.moveTo(W*.18,-10);cx.lineTo(W*.34,H+10);cx.stroke();
+ cx.fillStyle='#BFE3B4';
+ cx.beginPath();cx.ellipse(W*.14,H*.22,W*.09,H*.06,0,0,7);cx.fill();
+ cx.beginPath();cx.ellipse(W*.82,H*.86,W*.08,H*.05,0,0,7);cx.fill();
+ cx.beginPath();cx.moveTo(W*.78,-20);cx.bezierCurveTo(W*.62,H*.18,W*.88,H*.38,W*.66,H*.55);cx.bezierCurveTo(W*.48,H*.70,W*.72,H*.86,W*.60,H+20);
+ cx.lineCap='round';cx.strokeStyle='#9FD0EC';cx.lineWidth=34;cx.stroke();
+ cx.fillStyle='#8C8778';cx.font='700 11px system-ui';
+ cx.fillText('Q.1',W*.42,H*.30);cx.fillText('Q.3',W*.24,H*.44);cx.fillText('Q.7',W*.55,H*.80);
+ cx.fillText('Bình Thạnh',W*.62,H*.16);cx.fillText('Chợ Bến Thành',W*.36,H*.37);
+ cx.fillStyle='#6FA8C8';cx.fillText('S. Sài Gòn',W*.70,H*.47);}
+const LV_COLOR=['','#9AA0B5','#7FD97F','#BFD3FF','#F3B94D','#FF5FA8'];
+const LV_NAME=['','Mầm Mận','Mận Xanh','Mận Bạc','Mận Vàng','Mận Kim Cương'];
+const GEAR_META={non_la_neon:['👒','Nón lá Neon','rare'],mu_chrome:['⛑️','Mũ Chrome','rare'],beret_designer:['🎨','Beret','common'],
+ hand_caphe:['🥤','Cà phê sữa','common'],hand_tovit:['🪛','Tuốc-nơ-vít','common'],hand_co:['🖌️','Cọ vẽ','common'],
+ aura_5sao:['🌟','Aura 5★','legend'],canh_man:['🪽','Cánh Mận','legend'],frame_man_bong:['👑','Khung Mận Bông','rare'],
+ pin_caphe:['📌','Ghim Cà Phê','common'],twin_skin_holo:['🤖','Twin Hologram','epic']};
+const MINIS=[
+ {x:.22,y:.28,name:'Bé Na',lvl:5,face:'😊',se:'🎨',outfit:'aodai',pet:'🐱',status:'Nhận kèo design tới 10h ✨',rating:'5.0',done:127,gear:{head:'beret_designer',hand:'hand_co',aura:'aura_5sao',frame:'frame_man_bong',pin:'pin_caphe',twin:'twin_skin_holo'}},
+ {x:.66,y:.40,name:'Chú Sáu',lvl:4,face:'😎',se:'🛵',outfit:'vest',ride:'🛵',status:'Ship nội thành — 15 phút có mặt',rating:'4.9',done:64,gear:{head:'mu_chrome',hand:'hand_caphe',aura:'canh_man',frame:null,pin:null,twin:null}},
+ {x:.44,y:.62,name:'Cô Hoa',lvl:3,face:'🙂',se:'🧹',status:'Dọn nhà cuối tuần, đặt sớm nha',rating:'4.8',done:23,gear:{head:'non_la_neon',hand:'hand_tovit',aura:null,frame:null,pin:null,twin:null}},
+ {x:.78,y:.68,name:'Long IT',lvl:3,face:'🤓',se:'💻',status:'Sửa web, cài máy — online',rating:'4.7',done:19,gear:{head:null,hand:'hand_tovit',aura:null,frame:null,pin:'pin_caphe',twin:'twin_skin_holo'}},
+ {x:.32,y:.76,name:'Tí Còi',lvl:2,face:'😄',se:'📦',status:'Bê đồ khỏe re, kèo nào cũng nhận',rating:'4.6',done:4,gear:{head:null,hand:null,aura:null,frame:null,pin:null,twin:null}},
+ {x:.56,y:.20,name:'Út Mận',lvl:5,face:'🥰',se:'🍰',outfit:'aodai',pet:'🦆',status:'Bánh handmade — ship kèm nụ cười',rating:'5.0',done:210,gear:{head:'non_la_neon',hand:'hand_caphe',aura:'aura_5sao',frame:'frame_man_bong',pin:null,twin:null}},
+ {x:.12,y:.52,name:'Bin',lvl:1,face:'🥺',se:'🌱',status:'Mới vô nghề, mong được chỉ dạy',rating:'—',done:0,gear:{head:null,hand:null,aura:null,frame:null,pin:null,twin:null}}];
+MINIS.forEach(m=>{m.vx=(Math.random()-.5)*.0006;m.vy=(Math.random()-.5)*.0005;});
+function drawMinis(){MINIS.forEach(m=>{
+ m.x+=m.vx;m.y+=m.vy;
+ if(m.x<.06||m.x>.94)m.vx*=-1;if(m.y<.10||m.y>.90)m.vy*=-1;
+ const x=m.x*W,y=m.y*H,c=LV_COLOR[m.lvl];
+ if(m.lvl>=4){const pu=1+.22*Math.sin(t*2.6+m.x*20);
+  cx.globalAlpha=.5;cx.strokeStyle=c;cx.lineWidth=2;
+  cx.beginPath();cx.arc(x,y,15*pu,0,7);cx.stroke();
+  if(m.lvl===5){cx.globalAlpha=.3;cx.beginPath();cx.arc(x,y,21*pu,0,7);cx.stroke();}
+  cx.globalAlpha=1;}
+ cx.fillStyle=c;cx.beginPath();cx.arc(x,y,10,0,7);cx.fill();
+ cx.fillStyle=S.mapMode==='real'?'#3a3630':'rgba(255,255,255,.9)';
+ cx.font='10px system-ui';cx.textAlign='center';
+ cx.fillText(m.face,x,y+3.5);
+ cx.font='9px system-ui';cx.fillText(m.se,x+9,y-9);
+ cx.textAlign='start';});}
+function openPlumper(m){
+ el('plumpName').textContent='🍑 '+m.name;
+ const cell=(slot,id)=>{const g=id&&GEAR_META[id];
+  return `<div class="gcell ${g?'r-'+g[2]:'r-empty'}"><div class="gic">${g?g[0]:'▫️'}</div>
+   <div class="gn">${g?g[1]:slot}</div><div class="gs">${g?g[2]:'trống'}</div></div>`;};
+ el('plumpBody').innerHTML=`
+  <div style="display:flex;gap:13px;align-items:center;margin-bottom:10px">
+    ${chibiHTML({head:m.gear.head,hand:m.gear.hand,aura:m.gear.aura,
+      skin:['','m3','m3','m4','m2','m1'][m.lvl],outfit:m.outfit||'hoodie',
+      pet:m.pet||null,ride:m.ride||null},{small:true})}
+    <div><span class="lvchip lv${m.lvl}">Lv${m.lvl} · ${LV_NAME[m.lvl]}</span>
+     <div style="margin-top:6px;font-size:13px">★ ${m.rating} · <b>${m.done}</b> kèo xong</div></div></div>
+  <div class="roomcard" style="border-left:3px solid ${LV_COLOR[m.lvl]}">${m.se} <b>Status:</b> ${m.status}</div>
+  <b style="font-size:13px">⚔️ Trang bị</b>
+  <div class="gearGrid">
+    ${cell('Đầu',m.gear.head)}${cell('Tay',m.gear.hand)}${cell('Aura',m.gear.aura)}
+    ${cell('Khung',m.gear.frame)}${cell('Ghim',m.gear.pin)}${cell('Twin',m.gear.twin)}
+  </div>
+  <div class="small mut" style="margin:-4px 0 8px">Aura/Cánh chỉ có bằng LAO ĐỘNG — nhìn là biết trình, không mua được</div>
+  <b style="font-size:13px">📜 Gần đây</b>
+  <div class="histrow"><span>✅ ${m.done?'Hoàn thành kèo '+m.se:'Chưa có kèo — hãy là người đầu tiên thuê'}</span><span class="mut">hôm nay</span></div>
+  <div class="histrow"><span>⭐ Nhận đánh giá ${m.rating==='—'?'đầu tiên đang chờ':m.rating+'★'}</span><span class="mut">tuần này</span></div>
+  <button class="btn ${S.friendReq[m.name]?'ghost':'primary'}" style="width:100%;margin-top:10px" onclick="addPlumper('${m.name.replace(/'/g,"\\'")}')">
+    ${S.friendReq[m.name]?'⏳ Đã gửi lời mời — làm chung 1 kèo là thành bạn':'＋ Kết bạn'}</button>
+  <div style="display:flex;gap:9px;margin-top:9px">
+    <button class="btn primary" style="flex:1" onclick="msgFromMap('${m.name}',${m.lvl})">💬 Nhắn tin</button>
+    <button class="btn ghost" style="flex:1" onclick="closeSheet('plumperSheet');push('room');toast('Demo: Tổ Mận mẫu')">🏠 Tổ Mận</button>
+  </div>`;
+ openSheet('plumperSheet');}
+function msgFromMap(name,lvl){
+ let c=S.chats.find(x=>x.name===name);
+ if(!c){c={id:'c'+name.replace(/\s/g,''),kind:'dm',name,ava:name[0],ctx:'từ bản đồ · Lv'+lvl,typing:false,unread:0,
+   msgs:[{id:++_msgSeq,who:'them',body:'Chào bạn! Mình đang online, cần gì cứ nhắn 😊',ts:'bây giờ'}]};
+  S.chats.unshift(c);REPLIES[c.id]=['Ok bạn ơi!','Mình nhận kèo đó được nè','Cho mình xin chi tiết nha'];}
+ closeSheet('plumperSheet');openChat(c.id);}
+
+/* ==== CHAT: nhóm + channel + đính kèm ==== */
+S.chats.push(
+ {id:'gDon',kind:'group',name:'Đội Dọn Kho Q7',ava:'👥',ctx:'3 thành viên',typing:false,unread:1,msgs:[
+   {id:81,who:'them',sender:'Lan',body:'Tối nay 7h chiến kho nhé cả đội',ts:'14:02'},
+   {id:82,who:'me',body:'Ok chị, em mang găng tay',ts:'14:05'},
+   {id:83,who:'them',sender:'Minh',body:'Tui mang thùng carton 📦',ts:'14:06'}]},
+ {id:'chHot',kind:'channel',name:'Kèo Hot Sài Gòn',ava:'📣',ctx:'1.284 người theo dõi',readonly:true,typing:false,unread:1,msgs:[
+   {id:91,who:'them',sender:'Kèo Hot',body:'🔥 Q7: Dọn kho 150k — chủ dễ thương, có nước mát',ts:'09:00'},
+   {id:92,who:'them',sender:'Kèo Hot',type:'image',body:'Kho trước khi dọn 😅',ts:'09:01'},
+   {id:93,who:'them',sender:'Kèo Hot',body:'💻 Remote: dịch 3 email A-V 90k/cái — twin Qualify Dịch nhận được',ts:'11:30'}]});
+function createGroupUI(){const n=(el('ncGroupName').value||'').trim();if(!n){toast('Đặt tên nhóm đã');return;}
+ const c={id:'g'+Date.now(),kind:'group',name:n,ava:'👥',ctx:'3 thành viên · mã mời '+Math.random().toString(36).slice(2,10).toUpperCase(),
+  typing:false,unread:0,msgs:[{id:++_msgSeq,who:'them',sender:'Hệ thống',body:'Nhóm đã tạo — Lan & Minh (đã quen qua việc) được thêm vào',ts:'bây giờ'}]};
+ S.chats.unshift(c);REPLIES[c.id]=['Lan: Có mặt!','Minh: Chốt kèo nào 💪'];
+ el('ncGroupName').value='';if(R.stack[R.stack.length-1]==='newchat')R.stack.pop();openChat(c.id);toast('👥 Nhóm "'+n+'" đã tạo');}
+function createChannelUI(){
+ const c={id:'ch'+Date.now(),kind:'channel',name:'Channel của bạn',ava:'📣',ctx:'1 người theo dõi',readonly:false,
+  typing:false,unread:0,msgs:[{id:++_msgSeq,who:'them',sender:'Hệ thống',body:'Channel đã tạo — bạn là admin, đăng gì cả Sài Gòn thấy 📡',ts:'bây giờ'}]};
+ S.chats.unshift(c);if(R.stack[R.stack.length-1]==='newchat')R.stack.pop();openChat(c.id);toast('📣 Channel đã lên sóng');}
+function joinByCodeUI(){const code=(el('ncCode').value||'').trim();if(code.length<4){toast('Mã 8 ký tự nha');return;}
+ el('ncCode').value='';if(R.stack[R.stack.length-1]==='newchat')R.stack.pop();openChat('chHot');toast('🔗 Đã tham gia bằng mã '+code.toUpperCase());}
+function openGiftPicker(kind){
+ closeSheet('attachSheet');
+ const c=S.chats.find(x=>x.id===S.curChat);
+ el('gpTitle').textContent=kind==='nara'?'◈ Tặng Nara cho '+(c?c.name:''):'🎁 Tặng vật phẩm';
+ if(kind==='nara'){
+  el('gpBody').innerHTML='<div class="small mut" style="margin-bottom:8px">Bạn có ◈ '+fmtN(S.nara)+' — chọn mức tặng:</div>'
+   +[1000,5000,10000,20000].map(v=>`<button class="btn ghost" style="margin-bottom:8px" onclick="giftNara(${v})">◈ ${fmtN(v)}</button>`).join('');
+ }else{
+  const owned=S.inv.filter(id=>{const it=SHOP.find(x=>x.id===id);return it&&it.giftable!==false;});
+  el('gpBody').innerHTML=owned.length
+   ?'<div class="small mut" style="margin-bottom:8px">Chọn vật phẩm trong túi để tặng (chỉ đồ tặng được):</div>'
+    +'<div class="gearGrid">'+owned.map(id=>{const g=GEAR_META[id]||['🎁',id,'common'];
+      return `<div class="gcell r-${g[2]}" onclick="giftItemChat('${id}')"><div class="gic">${g[0]}</div><div class="gn">${g[1]}</div><div class="gs">tặng</div></div>`;}).join('')+'</div>'
+   :'<div class="small mut" style="text-align:center;padding:16px">Túi chưa có đồ tặng được. Mua ở 🛍️ Shop hoặc nhặt 🎁 trên bản đồ đã nhé!</div>';
+ }
+ openSheet('giftPickerSheet');}
+function giftNara(v){if(S.nara<v){toast('◈ Không đủ Nara');return;}
+ S.nara-=v;const c=S.chats.find(x=>x.id===S.curChat);
+ c.msgs.push({id:++_msgSeq,who:'me',type:'gift',body:'◈ Đã tặng '+fmtN(v)+' Nara 💝'});
+ closeSheet('giftPickerSheet');renderChat();
+ toast('💝 Đã tặng '+fmtN(v)+' Nara cho '+c.name);
+ setTimeout(()=>{c.msgs.push({id:++_msgSeq,who:'them',sender:c.name,body:'Ối trời cảm ơn nha! 🥰'});
+  if(R.stack[R.stack.length-1]==='chat')renderChat();else{c.unread++;updateMsgBadge();}},1200);}
+function giftItemChat(id){const g=GEAR_META[id]||['🎁',id,'common'];
+ S.inv=S.inv.filter(x=>x!==id);              // rời túi mình
+ const c=S.chats.find(x=>x.id===S.curChat);
+ c.msgs.push({id:++_msgSeq,who:'me',type:'giftitem',body:g[0]+' Đã tặng "'+g[1]+'" 🎁',rar:g[2]});
+ closeSheet('giftPickerSheet');renderChat();
+ toast('🎁 Đã tặng "'+g[1]+'" cho '+c.name);
+ setTimeout(()=>{c.msgs.push({id:++_msgSeq,who:'them',sender:c.name,body:'Wow "'+g[1]+'"! Quý quá, cảm ơn bạn 😍'});
+  if(R.stack[R.stack.length-1]==='chat')renderChat();else{c.unread++;updateMsgBadge();}},1300);}
+function sendImage(){const c=S.chats.find(x=>x.id===S.curChat);if(!c)return;
+ c.msgs.push({id:++_msgSeq,who:'me',type:'image',body:'Ảnh vừa chụp 📸',ts:'bây giờ'});
+ closeSheet('attachSheet');renderChat();toast('📷 Đã gửi ảnh');}
+function sendLocation(){const c=S.chats.find(x=>x.id===S.curChat);if(!c)return;
+ c.msgs.push({id:++_msgSeq,who:'me',type:'location',body:'Q.7 · gần cầu Ánh Sao',ts:'bây giờ'});
+ closeSheet('attachSheet');renderChat();toast('📍 Đã chia sẻ vị trí (mờ ~300m với người lạ)');}
+function sendTip(){if(S.plump<200){toast('🍑 Thiếu Plump — farm nhiệm vụ đã');return;}
+ const c=S.chats.find(x=>x.id===S.curChat);if(!c)return;S.plump-=200;
+ c.msgs.push({id:++_msgSeq,who:'me',type:'tip',body:'🧧 +🍑200 cảm ơn bạn!',ts:'bây giờ'});
+ closeSheet('attachSheet');renderChat();toast('🧧 Đã gửi 🍑200 — lao động được ghi nhận');}
+function pickAmt(b,v){S.topAmt=v;b.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');}
+function doTopup(){const b=el('topBtn');b.disabled=true;b.textContent='Đang đối soát…';
+  setTimeout(()=>{S.nara+=S.topAmt;addLedger('＋ Nạp Nara',S.topAmt,'m','n');
+    b.disabled=false;b.textContent='Tôi đã chuyển khoản';closeSheet('topupSheet');
+    toast('◈ +'+fmtN(S.topAmt)+' Nara đã vào ví');},1600);}
+
+/* ============ SHOP & STORE ============ */
+const SHOP=[
+ {id:'th_neo',ic:'🌌',name:'Theme "Neon 2077"',desc:'Sài Gòn hóa cyber: xanh điện + lime, cả bản đồ đổi da',price:45000,cur:'n',type:'theme',theme:'neo'},
+ {id:'th_cute',ic:'🧁',name:'Theme "Mận Bông"',desc:'Cartoon siêu dễ thương: trời kẹo bông, chấm mận hồng',price:30000,cur:'p',type:'theme',theme:'cute'},
+ {id:'th_cyber',ic:'🛸',name:'Theme "Tương Lai 2088"',desc:'Siêu ngầu: hologram tím-lam, lưới neon chạy, chữ phát sáng — cả app như phi thuyền',price:60000,cur:'n',type:'theme',theme:'cyber'},
+ {id:'th_candy',ic:'🍭',name:'Theme "Kẹo Bông Mận"',desc:'Siêu dễ thương cartoon: pastel kẹo, mây bồng bềnh, mọi nút tròn ũm mập',price:35000,cur:'n',type:'theme',theme:'candy'},
+ {id:'frame',ic:'👑',name:'Khung avatar "Vành Mận Vàng"',desc:'Viền vàng phát sáng quanh gương mặt số của bạn',price:12000,cur:'p',type:'frame'},
+ {id:'radar',ic:'📡',name:'Radar mở rộng ×2 (7 ngày)',desc:'Thấy drop trong bán kính gấp đôi trên bản đồ',price:8000,cur:'p',type:'boost'},
+ {id:'food',ic:'🍱',name:'Hộp mận sấy cho Tiểu Tâm/Twin',desc:'Dùng là +25⚡ ngay, ngon hơn cho ăn lẻ',price:9000,cur:'p',type:'food'},
+ {id:'aura',ic:'📢',name:'Trang trí phát sóng "Sóng Neon"',desc:'Aura đặc biệt quanh chấm của bạn khi đang trực',price:15000,cur:'p',type:'aura'},
+ {id:'lic',ic:'📜',name:'License Plump Pro (30 ngày)',desc:'Phí giao dịch 5% → 3%, huy hiệu Pro trên hồ sơ',price:59000,cur:'n',type:'license'},
+ {id:'course',ic:'🎓',name:'Khóa học "Excel cấp tốc"',desc:'Plump Academy · học xong thi lấy badge tăng giá thời gian',price:39000,cur:'n',type:'course'}];
+function renderShop(){el('shopList').innerHTML=SHOP.map(it=>{
+  const owned=S.inv.includes(it.id);
+  const priceTag=`<span class="cur ${it.cur}">${it.cur==='n'?'◈':'🍑'} ${fmtN(it.price)}</span>`;
+  return `<div class="card glass shopitem"><div class="ic">${it.ic}</div>
+   <div style="flex:1"><b style="font-size:13.5px">${it.name}</b><div class="small mut">${it.desc}</div></div>
+   <div style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">${priceTag}
+   ${owned?'<span class="chip">Đã có ✓</span>':`<button class="chip on" onclick="buy('${it.id}')">Mua</button>`}</div></div>`;}).join('')
+ +'<div class="small mut" style="text-align:center">◈ Nara mua đồ "cứng" (license, khóa học, theme premium) · 🍑 Plump mua đồ chăm chút — farm mà có, không nạp được</div>';}
+function buy(id){const it=SHOP.find(x=>x.id===id);if(!it||S.inv.includes(id))return;
+  const bal=it.cur==='n'?S.nara:S.plump;
+  if(bal<it.price){toast(it.cur==='n'?'◈ Thiếu Nara — nạp thêm':'🍑 Thiếu Plump — làm nhiệm vụ để farm');
+    it.cur==='n'?openSheet('topupSheet'):push('wallet');return;}
+  if(it.cur==='n')S.nara-=it.price;else S.plump-=it.price;
+  S.inv.push(id);addLedger('🛍️ Mua: '+it.name,-it.price,'',it.cur);
+  renderShop();toast('🛍️ Đã mua "'+it.name+'" — nằm trong Store 🎒');}
+function renderStore(){
+  el('storeList').innerHTML=(S.inv.length?S.inv.map(id=>{
+   const it=SHOP.find(x=>x.id===id);let act='';
+   if(it.type==='theme')act=S.equip.theme===it.theme?'<span class="chip on">Đang dùng ✓</span>':`<button class="chip on" onclick="setTheme('${it.theme}');renderStore()">Dùng</button>`;
+   else if(it.type==='frame')act=S.equip.frame?`<button class="chip" onclick="eqFrame(0)">Tháo</button>`:`<button class="chip on" onclick="eqFrame(1)">Đeo</button>`;
+   else if(it.type==='food')act=`<button class="chip on" onclick="eatFood('${id}')">Dùng +25⚡</button>`;
+   else if(it.type==='boost')act='<span class="chip gold">Đang chạy · còn 7 ngày</span>';
+   else if(it.type==='aura')act='<span class="chip gold">Bật khi bạn trực 📡</span>';
+   else if(it.type==='license')act='<span class="chip gold">Pro · phí 3% · còn 30 ngày</span>';
+   else if(it.type==='course')act=`<button class="chip on" onclick="toast('🎓 Bài 1/5 đã mở — học xong thi lấy badge')">Vào học</button>`;
+   return `<div class="card glass shopitem"><div class="ic">${it.ic}</div>
+    <div style="flex:1"><b style="font-size:13.5px">${it.name}</b><div class="small mut">${it.desc}</div></div>${act}</div>`;}).join('')
+  :'<div class="small mut" style="text-align:center;padding:14px">Store trống — ghé Shop 🛍️ sắm đồ đầu tiên nhé</div>')
+  +(S.equip.theme!=='default'?'<button class="btn ghost" onclick="setTheme(\'default\');renderStore()">↺ Về theme Đêm Mận gốc</button>':'');}
+function eqFrame(on){S.equip.frame=!!on;const a=el('meAva');if(a)a.classList.toggle('frame-gold',S.equip.frame);
+  toast(on?'👑 Vành Mận Vàng đã sáng quanh avatar':'Đã tháo khung');renderStore();}
+function eatFood(id){S.inv=S.inv.filter(x=>x!==id);S.energy=Math.min(50,S.energy+25);
+  const eL=el('energyLbl');if(eL){eL.textContent=S.energy+' / 50';el('energyBar').style.width=(S.energy*2)+'%';}
+  toast('🍱 +25⚡ — twin căng mọng');renderStore();}
+
+/* ============ NHIỆM VỤ FARM PLUMP ============ */
+const MISSIONS=[
+ {id:'m1',ic:'✅',t:'Hoàn thành 1 deal hôm nay',r:500,ok:()=>S.settledOnce},
+ {id:'m2',ic:'🤖',t:'Duyệt 1 bài của twin đúng SLA',r:200,ok:()=>S.approvedOnce},
+ {id:'m3',ic:'🫶',t:'Giúp 1 Plumper mới (chào + chỉ đường app)',r:300,ok:()=>true},
+ {id:'m4',ic:'🏙️',t:'Việc công ích: báo 1 drop sai phạm/điểm ngập',r:800,ok:()=>true}];
+function renderMissions(){el('missionList').innerHTML=MISSIONS.map(m=>{
+  const claimed=S.mClaimed[m.id];const can=m.ok();
+  return `<div class="card glass shopitem"><div class="ic">${m.ic}</div>
+   <div style="flex:1"><b style="font-size:13px">${m.t}</b><div class="small mut">Thưởng <span class="cur p">🍑 ${fmtN(m.r)}</span></div></div>
+   ${claimed?'<span class="chip">Đã nhận ✓</span>':can?`<button class="chip on" onclick="claim('${m.id}')">Nhận</button>`:'<span class="chip">Chưa xong</span>'}</div>`;}).join('');}
+function claim(id){const m=MISSIONS.find(x=>x.id===id);if(!m||S.mClaimed[id]||!m.ok())return;
+  S.mClaimed[id]=true;S.plump+=m.r;addLedger('🍑 Nhiệm vụ: '+m.t,m.r,'g','p');
+  renderMissions();toast('🍑 +'+fmtN(m.r)+' Plump — farm bằng việc tốt');}
+
+/* ============ BẢNG XẾP HẠNG ============ */
+const BOARD={
+ day:{rw:'Thưởng hôm nay: 🥇 🍑5.000 + huy hiệu "Mận Ngày" · 🥈🥉 🍑2.000 · Top10 🍑500 · reset 0h',
+  rows:[['Minh','Mận Vàng',2350],['Hà + Twin','Mận Vàng',2100],['Ống Kính Q.1','Mận Bạc',1800],['Trang','Mận Bạc',1450],['Khoa','Mận Bạc',1200],['Phúc','Mận Bạc',990],['Bạn','Mận Bạc',940],['Tú','Mận Đồng',720],['Lan','Mận Bạc',650],['Bếp Mận','Mận Bạc',540]]},
+ week:{rw:'Thưởng tuần: 🥇 🍑50.000 + khung "Vương Miện Mận" · 🥈🥉 🍑20.000 · Top10 🍑5.000 · còn 2 ngày 14 giờ',
+  rows:[['Hà + Twin','Mận Vàng',15400],['Minh','Mận Vàng',14800],['Bếp Mận','Mận Bạc',11200],['Ống Kính Q.1','Mận Bạc',9800],['Trang','Mận Bạc',8600],['Khoa','Mận Bạc',8100],['Bạn','Mận Bạc',7940],['Phúc','Mận Bạc',6300],['Lan','Mận Bạc',5900],['Tú','Mận Đồng',4100]]},
+ month:{rw:'Thưởng tháng: 🥇 🍑200.000 + License Pro 30 ngày + lên thẳng 1 hạng Mận · 🥈🥉 🍑80.000 · Top10 🍑20.000',
+  rows:[['Minh','Mận Vàng',61200],['Hà + Twin','Mận Vàng',58900],['Ống Kính Q.1','Mận Vàng',44300],['Bếp Mận','Mận Bạc',39800],['Trang','Mận Bạc',36500],['Khoa','Mận Bạc',33100],['Bạn','Mận Bạc',31940],['Lan','Mận Bạc',28800],['Phúc','Mận Bạc',24700],['Tú','Mận Đồng',18400]]}};
+let boardKey='day';
+function tabBoard(b,k){boardKey=k;b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderBoard();}
+function renderBoard(){const d=BOARD[boardKey];el('boardReward').textContent='🎁 '+d.rw;
+  el('boardList').innerHTML=d.rows.map((r,i)=>{
+   const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+   const me=r[0]==='Bạn';
+   return `<div class="card glass rankrow ${me?'me':''}"><div class="no">${medal}</div>
+    <div class="avatar" style="width:36px;height:36px;font-size:13px">${r[0][0]}</div>
+    <div style="flex:1"><b style="font-size:13.5px">${r[0]}${me?' (bạn)':''}</b><div class="small mut">${r[1]}</div></div>
+    <span class="cur p">🍑 ${fmtN(r[2])}</span></div>`;}).join('');}
+
+
+/* ============ TƯỜNG NHÀ & KẾT NỐI ============ */
+S.connections=[];
+const myMoments=[
+ {ico:'📄',txt:'Hoàn thành "Dịch tài liệu Q.1"',quote:'"Nhanh và chuẩn giọng" — ★5 từ Lan',price:'+104.500đ',peach:9},
+ {ico:'📸',txt:'Chụp 20 ảnh món · quán Mận Đỏ',quote:'"Ảnh lên app đẹp hơn món thật 😂" — ★5',price:'+190.000đ',peach:14}];
+function momentCard(m,i,mine){return `<div class="card glass moment">
+  <div class="mphoto">${m.ico||'✨'}</div>
+  <div class="mbody"><b style="font-size:13.5px">${m.txt}</b>
+  <div class="small mut" style="font-style:italic">${m.quote}</div>
+  <div class="h-row"><span class="money m" style="font-size:13px">${m.price}</span><span class="sp"></span>
+  <button class="chip" onclick="peach(${i},${mine?1:0},this)">🍑 <b>${m.peach}</b></button></div></div></div>`;}
+function renderWall(){el('myWall').innerHTML=myMoments.map((m,i)=>momentCard(m,i,true)).join('');
+  el('connChip').textContent='🤝 '+S.connections.length+' kết nối';}
+function peach(i,mine,btn){const arr=mine?myMoments:feed.filter(f=>f.t==='moment');
+  if(arr[i]){arr[i].peach++;btn.innerHTML='🍑 <b>'+arr[i].peach+'</b>';}}
+
+/* ============ FEED QUANH ĐÂY ============ */
+const feed=[
+ {t:'story',ava:'B',aura:false,who:'Bếp Mận · Q.7',txt:'40 hộp tiramisu cho tiệc công ty — 3 tiếng ra lò 🍰',price:'350k / 20 hộp',job:'Đặt 20 hộp tiramisu theo mẫu',jprice:350000},
+ {t:'moment',ico:'📑',who:'Minh',txt:'Minh hoàn thành "Dịch hợp đồng 5 trang"',quote:'"Chuẩn thuật ngữ, giao sớm 1 tiếng" — ★5',price:'220.000đ',peach:12},
+ {t:'tick',txt:'🤝 Vừa chốt cách bạn 400m: "Sửa xe không nổ" · 85k · Bình Thạnh'},
+ {t:'moment',ico:'☕',who:'Hà + Twin',txt:'Twin "Bút Mận" xong 5 caption cà phê lúc chủ đang ngủ',quote:'"Đúng giọng brand luôn" — ★5',price:'75.000đ',peach:8},
+ {t:'story',ava:'Ô',aura:false,who:'Ống Kính Q.1',txt:'Bộ ảnh menu 20 món cho quán mới — 1 tiếng máy 📷',price:'200k / 20 ảnh',job:'Chụp bộ ảnh menu 20 món',jprice:200000},
+ {t:'tick',txt:'✦ 6 drop mới trong bán kính 1km giờ qua — chạm bản đồ để xem'}];
+function renderFeed(){let mi=-1;
+  el('feedList').innerHTML=feed.map(f=>{
+    if(f.t==='tick')return `<div class="tick">${f.txt}</div>`;
+    if(f.t==='moment'){mi++;return momentCard(f,mi,false);}
+    return `<div class="card glass"><div class="h-row"><div class="avatar">${f.ava}</div>
+      <div style="flex:1"><b style="font-size:13.5px">${f.who}</b><div class="small mut">Story nghề</div></div></div>
+      <div style="font-size:13.5px;line-height:1.5">${f.txt}</div>
+      <div class="kv"><span>Giá tham khảo</span><b class="money p">${f.price}</b></div>
+      <button class="btn" style="padding:12px" onclick="hireStory('${f.job.replace(/'/g,"\\'")}',${f.jprice})">Thuê tôi làm cái này ✦</button></div>`;}).join('')
+  +'<div class="small mut" style="text-align:center;padding:6px">Feed của việc-đã-làm — không có "đăng tâm trạng" ở đây 🍑</div>';}
+function hireStory(job,price){
+  const doIt=()=>{el('cTitle').value=job;el('cPrice').value=price;push('create');
+    toast('✍️ Tâm đã điền sẵn từ story — chỉnh rồi thả thôi');};
+  if(!S.kyc){openKyc(doIt);return;}doIt();}
+
+/* ============ TƯỜNG NGƯỜI KHÁC ============ */
+const wallCache={};
+function openWall(d){if(!d)return;
+  el('wallName').textContent='PlumpLife · '+d.owner;
+  el('wallAva').textContent=d.owner[0];el('wallAva').className='avatar'+(d.twin?' aura':'');
+  el('wallTitle').textContent=d.owner;
+  el('wallSub').textContent=d.twin?'Bản thể số — chủ chịu trách nhiệm ✓':'Plumper đã xác minh ✓ · quen qua việc để kết nối';
+  el('wallRank').textContent=d.rank;
+  const ms=wallCache[d.owner]||(wallCache[d.owner]=[
+    {ico:'✨',txt:d.owner+' hoàn thành "'+d.title.replace('Twin ','').slice(0,26)+'…"',quote:'"Đáng tin, sẽ thuê lại" — ★5',price:fmt(d.price),peach:5+((d.id*7)%9)},
+    {ico:'🧾',txt:'Đạt mốc 50 việc trọn vẹn',quote:'Huy hiệu "Bàn tay mận" 🏅',price:'—',peach:11}]);
+  el('wallMoments').innerHTML=ms.map(m=>`<div class="card glass moment"><div class="mphoto">${m.ico}</div>
+    <div class="mbody"><b style="font-size:13.5px">${m.txt}</b><div class="small mut" style="font-style:italic">${m.quote}</div>
+    <div class="h-row"><span class="money m" style="font-size:13px">${m.price}</span><span class="sp"></span><span class="chip">🍑 ${m.peach}</span></div></div></div>`).join('');
+  S._wallOwner=d.owner;push('wall');}
+function wallMsg(){const w=S._wallOwner;
+  if(S.connections.includes(w)){openSheet('chatSheet');}
+  else toast('🤝 Chưa kết nối với '+w+' — hoàn thành một deal cùng nhau là mở DM');}
+
+/* ============ TIỂU TÂM — siêu thư ký ============ */
+function initTam(){if(S.tamInit)return;S.tamInit=true;
+  tamSay('Tâm đây 💗 Thư ký riêng của bạn.<br><span class="small mut">Tâm đọc được ví, lịch deal, twin và mặt bằng giá quanh bạn — hỏi gì cũng được, hoặc chạm chip bên dưới.</span>'
+   +(S.drafts>0?'<br><br>À, twin đang có <b>'+S.drafts+' bài chờ bạn duyệt</b> — khách đang đợi đó.':''));}
+function tamSay(html,extra){el('tamMsgs').insertAdjacentHTML('beforeend','<div class="mL">'+html+(extra||'')+'</div>');
+  el('tamMsgs').parentNode.scrollTop=99999;}
+function tamUser(t){el('tamMsgs').insertAdjacentHTML('beforeend','<div class="mR">'+t.replace(/</g,'&lt;')+'</div>');}
+function tamThink(cb){el('tamMsgs').insertAdjacentHTML('beforeend','<div class="mL typing" id="tamTyping"><span></span><span></span><span></span></div>');
+  setTimeout(()=>{const x=el('tamTyping');x&&x.remove();cb();},750);}
+function tamSend(){const i=el('tamInput');const t=i.value.trim();if(!t)return;i.value='';tamUser(t);tamThink(()=>tamReply(t));}
+function tamQuick(k){const label={gia:'Tư vấn giá giúp mình',soan:'Soạn drop hộ mình: dọn kho 2 tiếng, 120k',ngo:'Lọc lời ngỏ giúp mình',bao:'Báo cáo tuần của mình?'}[k];
+  tamUser(label);tamThink(()=>tamReply(label));}
+function tamReply(t){const s=t.toLowerCase();
+  if(s.includes('soạn')||s.includes('thả')||s.includes('drop')){
+    const num=(s.match(/(\d+)\s*k/)||[])[1];const price=num?+num*1000:100000;
+    const title=t.replace(/soạn drop hộ mình[:,]?|soạn|thả|drop|hộ mình|giúp mình/gi,'').replace(/\d+\s*k/gi,'').replace(/[:,]/g,' ').trim()||'Việc mới của bạn';
+    S.tamDraft={title:title.charAt(0).toUpperCase()+title.slice(1),price};
+    tamSay('Draft xong ✍️<br><b>"'+S.tamDraft.title+'"</b> · '+fmt(price)+' · Q.7 · chiều nay<br><span class="small mut">Khu này việc tương tự đi 90–140k — giá bạn nằm đẹp trong khoảng khớp nhanh.</span>',
+      '<div class="pricechips" style="margin-top:8px"><button class="chip on" onclick="tamDrop()">Thả luôn ✦</button><button class="chip" onclick="tamEdit()">Sửa trong form</button></div>');return;}
+  if(s.includes('giá')){tamSay('Mặt bằng quanh Q.7 tuần này 📈<br>· Dọn dẹp: <b>90–140k</b>/2h (12 deal)<br>· Dịch A–V: <b>70–120k</b>/200 chữ (31 deal)<br>· Chụp ảnh món: <b>150–300k</b>/bộ<br><span class="small mut">Số liệu từ deal SETTLED thật — Tâm chỉ đọc, thị trường tự nói. Giá vẫn là của bạn, không trần không sàn.</span>');return;}
+  if(s.includes('ngỏ')||s.includes('lời')){tamSay('"Dọn kho Q.7" của bạn có 2 lời ngỏ 📨<br>· <b>Minh</b> — 95k · Mận Vàng ★5.0 · cách 800m, rảnh ngay<br>· <b>Tú</b> — 110k · Mận Đồng ★4.5<br><br>Tâm nghiêng về <b>Minh</b>: rẻ hơn 15k mà uy tín cao hơn hẳn.',
+    '<div class="pricechips" style="margin-top:8px"><button class="chip on" onclick="acceptOffer(95000,\'Minh\')">Chấp nhận Minh 95k</button><button class="chip" onclick="openSheet(\'offerSheet\')">Tự xem</button></div>');return;}
+  if(s.includes('báo cáo')||s.includes('tuần')){tamSay('Tuần mận của bạn 📊<br>· Hoàn thành: <b>'+S.done+' việc</b><br>· Ví: <b>◈'+fmtN(S.nara)+'</b> Nara · <b>🍑'+fmtN(S.plump)+'</b> Plump · ◈'+fmtN(S.held)+' trong két<br>· PlumpRank: <b>'+S.rank.toLocaleString('vi-VN')+'</b> — còn 340 tới Mận Vàng<br>· Xếp hạng tuần: <b>#7</b> — thêm 🍑2.100 nữa là vào Top5 🏆<br>· Twin: '+S.drafts+' bài chờ duyệt · ⚡'+S.energy+'/50<br><span class="small mut">Gợi ý: Excel đang khan ở Thủ Đức — bật nhận loại việc này để leo hạng nhanh.</span>');return;}
+  if(s.includes('nhắc')||s.includes('lịch')){tamSay('Việc cần bạn để mắt ⏰<br>'+(S.deal?'· Deal "'+S.deal.title.slice(0,20)+'…" đang '+['','khóa tiền','chạy','chờ xác nhận','xong'][S.dealStep]+'<br>':'')+'· '+S.drafts+' bài twin chờ duyệt (SLA 2h41\')<br>· Năng lượng twin '+S.energy+'/50'+(S.energy<20?' — sắp đói, cho ăn nhé 🍑':''));return;}
+  tamSay('Tâm làm được mấy việc này cho bạn:<br>💡 tư vấn giá theo khu · ✍️ soạn drop từ một câu nói · 📨 lọc & chấp nhận lời ngỏ · 📊 báo cáo tuần · ⏰ nhắc deal/twin<br><span class="small mut">Cứ nói tự nhiên, ví dụ: "soạn drop rửa 30 chén 50k"</span>');}
+function tamDrop(){const d=S.tamDraft;if(!d)return;
+  const go=()=>{const nd={id:Date.now(),x:.44+Math.random()*.12,y:.42+Math.random()*.12,kind:'local',twin:false,
+    title:d.title,desc:'Soạn bởi Tiểu Tâm 💗 — chỉnh sửa được',price:d.price,ref:'Tâm đặt theo mặt bằng khu',owner:'Bạn',rank:'Mận Bạc ★4.9',addr:'Q.7 · TP.HCM',geo:'Q.7 · mờ ~300m'};
+    drops.push(nd);ripples.push({x:nd.x,y:nd.y,p:0});el('liveN').textContent=+el('liveN').textContent+1;
+    goRoot('map');toast('✦ Tâm đã thả "'+d.title+'" lên bản đồ');};
+  if(!S.kyc){openKyc(go);return;}go();}
+function tamEdit(){el('cTitle').value=S.tamDraft.title;el('cPrice').value=S.tamDraft.price;push('create');}
+/* nudge */
+function hideNudge(){el('tamNudge').classList.remove('show');}
+setTimeout(()=>{if(R.stack[R.stack.length-1]==='map'&&S.drafts>0){el('tamNudge').textContent='💗 Twin có '+S.drafts+' bài chờ bạn duyệt — chạm để xem';el('tamNudge').classList.add('show');
+  setTimeout(hideNudge,7000);}},9000);
+
+/* ============ BOOT ============ */
+resize();draw();renderLedger();renderStars();
+setTimeout(()=>toast('👀 Chạm một chấm sáng để xem việc — không cần tài khoản'),1200);
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});</script>
+
+
+<div id="giftModal"><div class="giftCard">
+  <div class="rayburst"></div>
+  <div id="giftBoxEl" class="giftBox">🎁</div>
+  <div id="giftRewardEl" class="giftReward"></div>
+  <button class="giftBtn" onclick="closeGift()">Tuyệt vời!</button>
+</div></div>
+<div id="serverFeed"></div>
+</body>
+</html>

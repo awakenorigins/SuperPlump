@@ -1,0 +1,4 @@
+{ "name": "SuperPlump — Chợ thời gian Sài Gòn", "short_name": "SuperPlump",
+  "start_url": "/app", "display": "standalone",
+  "background_color": "#140718", "theme_color": "#FF5FA8", "lang": "vi",
+  "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='54' r='34' fill='%23FF5FA8'/><circle cx='42' cy='44' r='7' fill='white' opacity='.9'/><path d='M50 20q10-12 20-8' stroke='%23F3B94D' stroke-width='7' fill='none' stroke-linecap='round'/></svg>", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }] }

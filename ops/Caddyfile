@@ -1,0 +1,6 @@
+# Reverse proxy + auto-TLS (production: thay domain thật, Caddy tự lo Let's Encrypt)
+plump.example.vn {
+  encode gzip
+  reverse_proxy api:8386
+  header Strict-Transport-Security "max-age=31536000"
+}

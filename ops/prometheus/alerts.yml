@@ -1,0 +1,21 @@
+groups:
+  - name: superplump-pilot
+    rules:
+      - alert: SuperPlumpLedgerMismatch
+        expr: plump_ledger_mismatch > 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "SuperPlump ledger mismatch detected"
+      - alert: SuperPlumpHigh5xx
+        expr: sum(increase(plump_http_requests_total{status="5xx"}[5m])) > 5
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "SuperPlump API 5xx spike"
+      - alert: SuperPlumpApiDown
+        expr: up{job="superplump-api"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "SuperPlump API metrics target down"

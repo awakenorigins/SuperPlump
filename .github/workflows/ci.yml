@@ -1,0 +1,48 @@
+name: superplump-ci
+on: [push, pull_request]
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    services:
+      pg:
+        image: postgis/postgis:16-3.4
+        env: { POSTGRES_USER: plump, POSTGRES_PASSWORD: plump, POSTGRES_DB: superplump }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U plump" --health-interval 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update -q && sudo apt-get install -y -q postgresql-client
+      - run: pip install psycopg2-binary pytest requests pyjwt websocket-client
+      - run: cd api && npm install
+      - name: Migrate 001→010
+        run: |
+          for f in db/0*.sql; do PGPASSWORD=plump psql -h 127.0.0.1 -U plump -d superplump -v ON_ERROR_STOP=1 -q -f "$f"; done
+      - name: Boot 2 instances + worker riêng + full audit (62 tests)
+        env:
+          MASTER_KEY: ci-master-key
+          JWKS_URL: http://127.0.0.1:8386/v1/dev/jwks
+        run: |
+          ENABLE_WORKER=0 PORT=8386 node api/server.js & 
+          ENABLE_WORKER=0 PORT=8387 node api/server.js &
+          node api/worker.js &
+          sleep 2.5
+          PORT_B=8387 python -m pytest tests/ -q
+      - name: Load & invariants under load
+        env: { MASTER_KEY: ci-master-key }
+        run: python scripts/loadtest.py
+      - name: Soak 40s + drift + leak check
+        env: { MASTER_KEY: ci-master-key }
+        run: API_PID=$(pgrep -f "PORT=8386" | head -1) python scripts/soak.py 40
+  secret-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,9 @@
+node_modules/
+.pytest_cache/
+__pycache__/
+.env
+.env.production
+.env.*.local
+*.log
+nohup.out
+dbdata/

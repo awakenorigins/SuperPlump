@@ -1,0 +1,59 @@
+# SuperPlump v1.5 — topology production thu nhỏ: proxy TLS + N api + worker riêng + PostGIS
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: plump
+      POSTGRES_PASSWORD: ${PGPASSWORD:-plump}
+      POSTGRES_DB: superplump
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro          # 001→012 tự chạy theo thứ tự
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U plump -d superplump"], interval: 3s, retries: 20 }
+  api:
+    build: .
+    depends_on: { db: { condition: service_healthy } }
+    environment: &apienv
+      NODE_ENV: production
+      PGHOST: db
+      PGPASSWORD: ${PGPASSWORD:-plump}
+      ENABLE_WORKER: "0"                              # worker chạy service riêng
+      ADMIN_KEY: ${ADMIN_KEY:?bat_buoc_dat}
+      OWNER_TOKEN: ${OWNER_TOKEN:?bat_buoc_dat}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:?bat_buoc_dat}
+      MASTER_KEY: ${MASTER_KEY:?bat_buoc_dat}         # KMS envelope cho khóa mandate
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:?bat_buoc_dat}
+      EKYC_WEBHOOK_SECRET: ${EKYC_WEBHOOK_SECRET:?bat_buoc_dat}
+      JWKS_URL: ${JWKS_URL:-}
+      TRUST_PROXY_TLS: "1"                            # Caddy gánh TLS phía trước
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-superplump1a.62.146.238.213.sslip.io}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://superplump1a.62.146.238.213.sslip.io}
+    deploy: { replicas: 2 }                           # rate-limit & realtime đã multi-node qua PG
+  worker:
+    build: .
+    command: ["node","api/worker.js"]
+    depends_on: { db: { condition: service_healthy } }
+    environment: *apienv
+  caddy:
+    image: caddy:2
+    ports: ["80:80","443:443"]
+    volumes: [ "./ops/Caddyfile:/etc/caddy/Caddyfile:ro", "caddydata:/data" ]
+    depends_on: [ api ]
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["monitoring"]
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-lifecycle"]
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on: [ api ]
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9090/-/healthy"], interval: 10s, retries: 12 }
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    profiles: ["monitoring"]
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes:
+      - ./ops/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9093/-/healthy"], interval: 10s, retries: 12 }
+volumes: { dbdata: {}, caddydata: {} }
